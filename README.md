@@ -27,6 +27,13 @@ Based on [Pryv.io](https://api.pryv.com)
   - Get the list of specific questions (for the doctor)
   - Allow patients to post credentials to access their data 
 
+### Inspiration
+
+**2 demo apps**
+1- [Collect web app](https://pryv.github.io/example-apps-web/collect-survey-data/?pryvServiceInfoUrl=https://demo.datasafe.dev/reg/service/info) to login / register and collect data
+2- [View and share web app](https://pryv.github.io/example-apps-web/view-and-share/index.html?pryvServiceInfoUrl=https://demo.datasafe.dev/reg/service/info) to view the data and create a share link 
+Base concepts are present, but the flow needs to be adapted
+
 ## Contents
 
 ### Text to be translated in English to present HDS
