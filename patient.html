@@ -6,7 +6,8 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <link rel="stylesheet" type="text/css" href="https://api.pryv.com/style/pryv2.min.css">
+  <link rel="icon" href="https://healthdatasafe.github.io/style/images/Favicon/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="https://healthdatasafe.github.io/style/hds.min.css">
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400">
   <title>Demo Form - Patient's page</title>
 </head>
@@ -34,11 +35,20 @@
         </span>
       </div>
     </div>
-    <div class="card" id="data-view" style="visibility: hidden;">
-      Data
+    <div class="card" id="card-form" style="visibility: hidden;">
+      <form id="form">
+        <h2 class="card-title">Form</h2>
+        <div class="form-group">
+          <label for="input-bp">
+            Please ...
+          </label>
+          <div class="input-group" id="inputs-list">
+            <!-- HERE WILL GO THE INPUTS-->
+          </div>
+        </div>
+        <button type="button" id="submit-button" class="btn btn-primary mb-2">Submit</button>
+      </form>
     </div>
-
-
   </div>
 </body>
 
