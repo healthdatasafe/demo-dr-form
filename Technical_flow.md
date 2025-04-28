@@ -38,8 +38,8 @@ They contains personal data with the following streams
 	- profile-date-of-birth: - event of type "date/iso-8601"
 	- profile-location: - event of type (to be discussed) "contact/vcard" or "location/city"
 	- profile-sex: - event of type "attributes/biological-sex"
-- familly
-	- familly-children: events of type "count/generic"
+- family
+	- family-children: events of type "count/generic"
 - fertility
 	- fertility-miscarriages: events of type "count/generic"
 	- awarness-training: events of type "training/fabm-v1"

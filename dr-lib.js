@@ -1,8 +1,8 @@
 let connection = null;
 
 const drLib = {
-  showLoginButton
-
+  showLoginButton,
+  getSharingToken
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
@@ -35,7 +35,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     console.log('##pryvAuthStateChange', state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
       connection = new Pryv.Connection(state.apiEndpoint);
-      await initPatientAccount(connection);
+      await initDrAccount(connection);
       stateChangeCallBack('loggedIN');
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
@@ -45,7 +45,64 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
   }
 }
 
-async function initPatientAccount (connection) {
+
+/**
+ * Initialize the doctor account
+ * @param {*} connection 
+ */
+async function initDrAccount (connection) {
+  await initStreams(connection);
+  console.log('## Dr account initialized')
+}
+
+/**
+ * Initialize or get the sharing token for patients
+ * @returns 
+ */
+async function getSharingToken () {
+  const accessesCheckRes = await connection.api([{ method: 'accesses.get', params: {}}]);
+  const sharedAcess = accessesCheckRes[0].accesses.find(access => access.name === 'demo-dr-form-shared');
+  if (sharedAcess) {
+    console.log('## Dr account already has a shared access');
+    return sharedAcess.apiEndpoint;
+  }
+  const accessRes = await connection.api([{ 
+    method: 'accesses.create', 
+    params: {
+      name: 'demo-dr-form-shared',
+      type: 'shared',
+      permissions: [{
+          streamId: 'patients-inbox',
+          level: 'create-only'
+        },
+        {
+          streamId: 'demo-dr-forms-questionary-x',
+          level: 'read'
+        },
+        { // for "publicly shared access" always forbid the selfRevoke feature
+          feature: "selfRevoke",
+          setting: "forbidden"
+        }],
+      clientData: {
+        'demo-dr-form': {
+          questionaryId: 'demo-dr-forms-questionary-x'
+        }
+      }
+    }
+  }]);
+  console.log('## Dr account shared access created', accessRes);
+  return accessRes[0].access.apiEndpoint;
+}
+
+
+async function initStreams () {
+  // check if the account is already initialized
+  const resStreams = await connection.api([{ method: 'streams.get', params: { parentId: 'patients' } }]);
+  if (resStreams[0].streams.length > 0) {
+    console.log('## Dr account streams already initialized');
+    return;
+  }
+
   // create stream structure (even if already exists)
   const apiCalls = [
     { 
@@ -87,6 +144,5 @@ async function initPatientAccount (connection) {
     }
   ];
   const result = await connection.api(apiCalls);
-  console.log(result);
-  console.log('## Dr account initialized')
+  console.log('## Dr account streams created', result);
 }

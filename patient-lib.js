@@ -62,7 +62,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     console.log('##pryvAuthStateChange', state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
       connection = new Pryv.Connection(state.apiEndpoint);
-      await initPatientAccount(connection);
+      await initDrAccount(connection);
       stateChangeCallBack('loggedIN');
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
@@ -73,7 +73,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
 }
 
 // Creates the streams structure for the patient account after the user has logged in
-async function initPatientAccount (connection) {
+async function initDrAccount (connection) {
   const patientBaseStreams = [
     // profile
     {id: 'profile-name', name: 'Name', parentId: 'profile'},
@@ -180,7 +180,7 @@ async function handleFormSubmit (values) {
     }
 
     if (value === field.value || value === '') {
-      // no change
+      // no change or noting to create
       continue;
     }
 
