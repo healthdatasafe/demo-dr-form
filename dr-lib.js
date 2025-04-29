@@ -66,7 +66,7 @@ async function getPatientsList () {
       patient.username = patientInfo.user.username;
 
       // -- get data
-      const profileEvents = await patientConnection.api([{ method: 'events.get', params: { streams: ['profile'] } }]);
+      const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);
       for (const profileEvent of profileEvents[0].events) {
         const field = dataFieldFromEvent(profileEvent);
         if (field) {

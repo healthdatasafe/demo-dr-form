@@ -48,7 +48,7 @@ async function updateFormContent() {
   for (let i = 0; i < formData.length; i++) {
     const formField = formData[i];
     const fieldId = formField.id;
-    const fieldValue = formField.value || '';
+    const fieldValue = (formField.value != null) ? formField.value : '';
     const fieldType = formField.type;
     const fieldLabel = formField.label;
     

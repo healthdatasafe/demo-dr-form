@@ -159,9 +159,17 @@ async function getFormContent () {
 
 // ---------------- create / update data ---------------- //
 
-async function parseValue (value, type) {
+function parseValue (value, type) {
+  if (value === undefined || value === null || value === '') {
+    return '';
+  }
   if (type === 'number') {
-    return parseFloat(value);
+    const parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      console.error('## Error parsing number', value);
+      return '';
+    }
+    return parsedValue;
   }
   if (type === 'boolean') {
     return value === 'true';
@@ -175,8 +183,7 @@ async function handleFormSubmit (values) {
     const streamId = field.streamId;
     const eventType = field.eventType;
     const eventId = field.eventId;
-    const value = values[field.id];
-    console.log('## Value', field.id, value);
+    const value = parseValue(values[field.id], field.type);
     if (value === '' && eventId) {
       // delete the event
       apiCalls.push({

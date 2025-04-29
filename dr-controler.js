@@ -47,8 +47,8 @@ async function setPatientList() {
     const cellUsername = row.insertCell(-1);
     cellUsername.innerHTML = patient.username;
     for (const field of fields) {
-      console.log('## field', field);
-      row.insertCell(-1).innerHTML = patient.formData[field.dataFieldKey]?.value || '';
+      const value = patient.formData[field.dataFieldKey]?.value;
+      row.insertCell(-1).innerHTML = (value != null) ? value : '';
     }
   }
 }
