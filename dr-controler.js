@@ -15,16 +15,34 @@ async function stateChange(state) {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('data-view').style.visibility = 'visible';
     setSharingLink();
-    await drLib.getPatientsList();
+    setPatientList();
   } else {
     document.getElementById('please-login').style.visibility = 'visible';
     document.getElementById('data-view').style.visibility = 'hidden';
   }
 }
 
-async function setSharingLink() {
-  
+const rowItems = ['name', 'surname', 'nationality'];
+/**
+ * Update the patient list
+ */
+async function setPatientList() {
+  const table = document.getElementById('patients-table');
+  const patients = await drLib.getPatientsList();
+  for (const patient of Object.values(patients)) {
+    const row = table.insertRow(-1);
+    const cellUsername = row.insertCell(-1);
+    cellUsername.innerHTML = patient.username;
+    for (const field of rowItems) {
+      row.insertCell(-1).innerHTML = patient.formData[field]?.value || '';
+    }
+  }
+}
 
+/**
+ * Creates the sharing link on the page
+ */
+async function setSharingLink() {
   const currentPage = window.location.href;
   const posDrHTML = currentPage.indexOf('dr.html');
   const patientURL = currentPage.substring(0, posDrHTML) + 'patient.html';
