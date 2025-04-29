@@ -2,7 +2,8 @@ let connection = null;
 
 const drLib = {
   showLoginButton,
-  getSharingToken
+  getSharingToken,
+  getPatientsList,
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
@@ -35,7 +36,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     console.log('##pryvAuthStateChange', state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
       connection = new Pryv.Connection(state.apiEndpoint);
-      await initPatientAccount(connection);
+      await initDrAccount(connection);
       stateChangeCallBack('loggedIN');
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
@@ -45,12 +46,79 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
   }
 }
 
+// -------- Fetch patient list --------
+
+const patients = {};
+
+async function getPatientsList () {
+  const res = await connection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'] } }]);
+  const patientApiEndpointEvents = res[0].events;
+  for (const event of patientApiEndpointEvents) {
+    if (event.type === 'credentials/pryv-api-endpoint') {
+      const patient = {
+        apiEndpoint: event.content,
+        formData: {}
+      };
+      const patientConnection = new Pryv.Connection(patient.apiEndpoint);
+      // -- get patient info
+      const patientInfo = await patientConnection.accessInfo();
+      patient.username = patientInfo.user.username;
+
+      // -- get data
+      const profileEvents = await patientConnection.api([{ method: 'events.get', params: { streams: ['profile'] } }]);
+      for (const profileEvent of profileEvents[0].events) {
+        const field = dataFieldFromEvent(profileEvent);
+        if (field) {
+          patient.formData[field.key] = field;
+        }
+      }
+      patients[patient.username] = patient;
+    }
+  }
+
+  console.log('## Patients list', patients);
+  return patients;
+}
+
+const dataFieldsCache = {};
+function initFieldsCache (event) {
+  if (Object.keys(dataFieldsCache).length !== 0) return;
+  for (const formField of dataDefs.formContent) {
+    const dataFieldId = formField.streamId + ':' + formField.eventType;
+    dataFieldsCache[dataFieldId] = formField;
+  }
+}
+
+/**
+ * Link an event to a data field from form
+ * @param {*} event 
+ */
+function dataFieldFromEvent (event) {
+  initFieldsCache(event);
+  const formFieldId = event.streamId + ':' + event.type;
+  const dataField = dataFieldsCache[formFieldId];
+  if (!dataField) {
+    console.error('## Data field not found for event', event);
+    return null;
+  }
+  const field = {
+    formFieldId,
+    key: dataField.dataFieldKey,
+    label: dataField.label,
+    type: dataField.type,
+    value: event.content,
+    event: event
+  };
+  return field;
+}
+
+// -------- initualization functions --------
 
 /**
  * Initialize the doctor account
  * @param {*} connection 
  */
-async function initPatientAccount (connection) {
+async function initDrAccount (connection) {
   await initStreams(connection);
   console.log('## Dr account initialized')
 }

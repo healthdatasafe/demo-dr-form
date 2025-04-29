@@ -85,6 +85,7 @@ async function initSharingWithDr (formApiEndpoint) {
   const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === sharingAccessId);
   if (sharedAccess) {
     console.log('## Already created access for this Dr');
+    return;
   }
   //-- create a set of permission based on the datadefs streams --//
   const permissions = dataDefs.patientBasePermissions.map(perm => ({
@@ -123,36 +124,16 @@ async function initSharingWithDr (formApiEndpoint) {
 
 // ---------------- form content ---------------- //
 
-const formContent = [
-  {
-    streamId: 'profile-name',
-    eventType: 'contact/name',
-    contentField: 'name',
-    type: 'text',
-    label: 'Name',
-  },
-  {
-    streamId: 'profile-name',
-    eventType: 'contact/surname',
-    contentField: 'surname',
-    type: 'text',
-    label: 'Surname',
-  },
-  {
-    streamId: 'profile-nationality',
-    eventType: 'contact/nationality',
-    type: 'text',
-    label: 'Nationality',
-  },
-];
 
-let formInitialized = null;
+// local copy of formContent + actual values
+let formData = null;
 async function getFormContent () {
-  if (formInitialized) { return formContent; }
+  if (formData) { return formData; }
+  formData = structuredClone(dataDefs.formContent);
   formInitialized = true; // prevent multiple calls to this function
 
   // get the values from the API
-  const apiCalls = formContent.map(field => ({
+  const apiCalls = formData.map(field => ({
     method: 'events.get',
     params: {
       streams: [field.streamId],
@@ -164,7 +145,7 @@ async function getFormContent () {
   const res = await connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
-    const field = formContent[i];
+    const field = formData[i];
     field.id = 'field-' + i; // generate a unique id for the field
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
@@ -173,13 +154,13 @@ async function getFormContent () {
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
-  return formContent;
+  return formData;
 };
 
 // ---------------- create / update data ---------------- //
 async function handleFormSubmit (values) {
   const apiCalls = [];
- for (const field of formContent) {
+ for (const field of formData) {
     const streamId = field.streamId;
     const eventType = field.eventType;
     const eventId = field.eventId;

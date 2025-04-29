@@ -23,8 +23,32 @@ const patientBasePermissions = [
   {id: 'body-weight', name: 'Body weight'},
 ]
 
+const formContent = [
+  {
+    streamId: 'profile-name',
+    eventType: 'contact/name',
+    type: 'text',
+    label: 'Name',
+    dataFieldKey: 'name',
+  },
+  {
+    streamId: 'profile-name',
+    eventType: 'contact/surname',
+    type: 'text',
+    label: 'Surname',
+    dataFieldKey: 'surname',
+  },
+  {
+    streamId: 'profile-nationality',
+    eventType: 'contact/nationality',
+    type: 'text',
+    label: 'Nationality',
+    dataFieldKey: 'nationality',
+  },
+];
 
 const dataDefs = {
   patientBaseStreams,
-  patientBasePermissions
+  patientBasePermissions,
+  formContent
 };

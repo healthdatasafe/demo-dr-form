@@ -5,18 +5,17 @@
  * @param {*} event 
  */
 
-
-
 window.onload = (event) => {
   stateChange('loggedOut');
   drLib.showLoginButton('login-button', stateChange);
 };
 
-function stateChange(state) {
+async function stateChange(state) {
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('data-view').style.visibility = 'visible';
     setSharingLink();
+    await drLib.getPatientsList();
   } else {
     document.getElementById('please-login').style.visibility = 'visible';
     document.getElementById('data-view').style.visibility = 'hidden';

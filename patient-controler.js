@@ -41,12 +41,12 @@ async function getDoctorInfo() {
  * Take the from content from the definition and actual values and create the HTML
  */
 async function updateFormContent() {
-  const formContent = await patientLib.getFormContent();
-  console.log('Form content:', formContent);
+  const formData = await patientLib.getFormContent();
+  console.log('Form content:', formData);
  
   document.getElementById('inputs-list').innerHTML = ''; // Clear previous content
-  for (let i = 0; i < formContent.length; i++) {
-    const formField = formContent[i];
+  for (let i = 0; i < formData.length; i++) {
+    const formField = formData[i];
     const fieldId = formField.id;
     const fieldValue = formField.value || '';
     const fieldType = formField.type;
@@ -73,9 +73,9 @@ async function updateFormContent() {
  */
 async function submitForm() {
   const values = {};
-  const formContent = await patientLib.getFormContent();
-  for (let i = 0; i < formContent.length; i++) {
-    const field = formContent[i];
+  const formData = await patientLib.getFormContent();
+  for (let i = 0; i < formData.length; i++) {
+    const field = formData[i];
     const fieldId = field.id;
     const fieldValue = document.getElementById(fieldId).value.trim();
     values[field.id] = fieldValue; // Store the value in the values object
