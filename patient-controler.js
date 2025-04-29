@@ -5,8 +5,6 @@
  * @param {*} event 
  */
 
-
-
 window.onload = (event) => {
   stateChange('loggedOut');
   patientLib.showLoginButton('login-button', stateChange);
@@ -17,6 +15,7 @@ function stateChange(state) {
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('card-form').style.visibility = 'visible';
+    getDoctorInfo();
     updateFormContent();
   } else {
     document.getElementById('please-login').style.visibility = 'visible';
@@ -24,6 +23,19 @@ function stateChange(state) {
   }
 }
 
+// ------- Get Dr's info -------- //
+async function getDoctorInfo() {
+  const params = new URLSearchParams(document.location.search);
+  const formApiEndpoint = params.get('formApiEndpoint');
+  if (!formApiEndpoint) {
+    alert('No formApiEndpoint found in the URL');
+    return;
+  }
+  await initSharingWithDr(formApiEndpoint);
+}
+
+
+// ------- Form -------- //
 
 /**
  * Take the from content from the definition and actual values and create the HTML

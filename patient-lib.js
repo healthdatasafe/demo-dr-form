@@ -4,42 +4,23 @@ const patientLib = {
   showLoginButton,
   handleFormSubmit,
   getFormContent,
+  initSharingWithDr,
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
+
+  const requestedPermissions = dataDefs.patientBasePermissions.map(perm => ({
+    streamId: perm.id,
+    defaultName: perm.name,
+    level: 'manage'
+  }));
 
   const authSettings = {
     spanButtonID: loginSpanId, // div id the DOM that will be replaced by the Service specific button
     onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
     authRequest: { // See: https://api.pryv.com/reference/#auth-request
       requestingAppId: 'demo-dr-form-patient', // to customize for your own app
-      requestedPermissions: [ 
-        {
-          streamId: 'profile',
-          defaultName: 'Profile',
-          level: 'manage' 
-        },
-        {
-          streamId: 'family',
-          defaultName: 'Family',
-          level: 'manage' 
-        },
-        {
-          streamId: 'fertility',
-          defaultName: 'Fertility',
-          level: 'manage' 
-        },
-        {
-          streamId: 'body-height',
-          defaultName: 'Body height',
-          level: 'manage' 
-        },
-        {
-          streamId: 'body-weight',
-          defaultName: 'Body weight',
-          level: 'manage' 
-        }
-      ],
+      requestedPermissions,
       clientData: {
         'app-web-auth:description': {
           'type': 'note/txt',
@@ -62,7 +43,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     console.log('##pryvAuthStateChange', state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
       connection = new Pryv.Connection(state.apiEndpoint);
-      await initDrAccount(connection);
+      await initPatientAccount(connection);
       stateChangeCallBack('loggedIN');
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
@@ -73,24 +54,9 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
 }
 
 // Creates the streams structure for the patient account after the user has logged in
-async function initDrAccount (connection) {
-  const patientBaseStreams = [
-    // profile
-    {id: 'profile-name', name: 'Name', parentId: 'profile'},
-    {id: 'profile-nationality', name: 'Nationality', parentId: 'profile'},
-    {id: 'profile-date-of-birth', name: 'Date of Birth', parentId: 'profile'},
-    {id: 'profile-location', name: 'Location', parentId: 'profile'},
-    {id: 'profile-sex', name: 'Sex', parentId: 'profile'},
-    // family
-    {id: 'family-children', name: 'Children', parentId: 'family'},
-    // fertility
-    {id: 'fertility-miscarriages', name: 'Miscarriages', parentId: 'fertility'},
-    {id: 'fertility-traings', name: 'Trainings', parentId: 'fertility'},
-    {id: 'fertility-cycles', name: 'Cycles', parentId: 'fertility'},
-    {id: 'fertility-cycles-charted-extimation', name: 'Cycles charted estimation', parentId: 'fertility'},
-    {id: 'fertility-ttc-tta', name: 'Trying to conceive / Avoiding pregnancy', parentId: 'fertility'},
-  ];
-  const apiCalls = patientBaseStreams.map(stream => ({
+async function initPatientAccount (connection) {
+  
+  const apiCalls = dataDefs.patientBaseStreams.map(stream => ({
     method: 'streams.create',
     params: {
       id: stream.id,
@@ -102,6 +68,57 @@ async function initDrAccount (connection) {
   const res = await connection.api(apiCalls);
   console.log('## Patient account streams created', res);
   console.log('## Patient account initialized')
+}
+
+// ---- if first connection to the app create a sharing for the Dr and submit it ---- //
+async function initSharingWithDr (formApiEndpoint) {
+  const drConnection = new Pryv.Connection(formApiEndpoint);
+  const drAccessInfo = await drConnection.accessInfo();
+  console.log('## Dr connection info', drAccessInfo);
+  const questionaryId = drAccessInfo.clientData?.['demo-dr-form']?.questionaryId;
+  const drUserId = drAccessInfo.user.username;
+  // creates a unique id for the shaing access in case of two drs using the same app
+  const sharingAccessId = `${drUserId}-${questionaryId}`;
+
+  //-- check if the access already exists --//
+  const accessesCheckRes = await connection.api([{ method: 'accesses.get', params: {}}]);
+  const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === sharingAccessId);
+  if (sharedAccess) {
+    console.log('## Already created access for this Dr');
+  }
+  //-- create a set of permission based on the datadefs streams --//
+  const permissions = dataDefs.patientBasePermissions.map(perm => ({
+    streamId: perm.id,
+    level: 'read'
+  }));
+
+  const accessRes = await connection.api([{ 
+    method: 'accesses.create', 
+    params: {
+      name: sharingAccessId,
+      type: 'shared',
+      permissions: permissions,
+      clientData: {
+        'demo-dr-form': {
+          questionaryId: 'demo-dr-forms-questionary-x'
+        }
+      }
+    }
+  }]);
+  const createdAccess = accessRes[0].access;
+  console.log('## Patient shared access created', accessRes);
+
+  // publishing access on Dr Account
+  const apiCalls = [{
+    method: 'events.create',
+    params: {
+      streamIds: ['patients-inbox'],
+      type: 'credentials/pryv-api-endpoint',
+      content: createdAccess.apiEndpoint
+    }
+  }];
+  const publishRes = await drConnection.api(apiCalls);
+  console.log('## Shared access published to Dr Account', publishRes);
 }
 
 // ---------------- form content ---------------- //

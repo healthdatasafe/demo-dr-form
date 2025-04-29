@@ -35,7 +35,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     console.log('##pryvAuthStateChange', state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
       connection = new Pryv.Connection(state.apiEndpoint);
-      await initDrAccount(connection);
+      await initPatientAccount(connection);
       stateChangeCallBack('loggedIN');
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
@@ -50,7 +50,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
  * Initialize the doctor account
  * @param {*} connection 
  */
-async function initDrAccount (connection) {
+async function initPatientAccount (connection) {
   await initStreams(connection);
   console.log('## Dr account initialized')
 }
@@ -61,10 +61,10 @@ async function initDrAccount (connection) {
  */
 async function getSharingToken () {
   const accessesCheckRes = await connection.api([{ method: 'accesses.get', params: {}}]);
-  const sharedAcess = accessesCheckRes[0].accesses.find(access => access.name === 'demo-dr-form-shared');
-  if (sharedAcess) {
+  const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === 'demo-dr-form-shared');
+  if (sharedAccess) {
     console.log('## Dr account already has a shared access');
-    return sharedAcess.apiEndpoint;
+    return sharedAccess.apiEndpoint;
   }
   const accessRes = await connection.api([{ 
     method: 'accesses.create', 
