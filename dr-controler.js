@@ -28,13 +28,27 @@ const rowItems = ['name', 'surname', 'nationality'];
  */
 async function setPatientList() {
   const table = document.getElementById('patients-table');
+  const fields = drLib.getFields();
+  // --- headers
+  const headerRow = table.insertRow(-1);
+  const headerUserCell = document.createElement("TH");
+  headerUserCell.innerHTML = 'Username';
+  headerRow.appendChild(headerUserCell);
+  for (const field of fields) {
+    const headerCell = document.createElement("TH");
+    headerCell.innerHTML = field.label;
+    headerRow.appendChild(headerCell);
+  }
+
+  // --- patients
   const patients = await drLib.getPatientsList();
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
     const cellUsername = row.insertCell(-1);
     cellUsername.innerHTML = patient.username;
-    for (const field of rowItems) {
-      row.insertCell(-1).innerHTML = patient.formData[field]?.value || '';
+    for (const field of fields) {
+      console.log('## field', field);
+      row.insertCell(-1).innerHTML = patient.formData[field.dataFieldKey]?.value || '';
     }
   }
 }

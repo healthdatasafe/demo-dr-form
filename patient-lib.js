@@ -158,6 +158,17 @@ async function getFormContent () {
 };
 
 // ---------------- create / update data ---------------- //
+
+async function parseValue (value, type) {
+  if (type === 'number') {
+    return parseFloat(value);
+  }
+  if (type === 'boolean') {
+    return value === 'true';
+  }
+  return value;
+}
+
 async function handleFormSubmit (values) {
   const apiCalls = [];
  for (const field of formData) {
@@ -165,7 +176,7 @@ async function handleFormSubmit (values) {
     const eventType = field.eventType;
     const eventId = field.eventId;
     const value = values[field.id];
-
+    console.log('## Value', field.id, value);
     if (value === '' && eventId) {
       // delete the event
       apiCalls.push({

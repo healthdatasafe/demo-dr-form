@@ -45,6 +45,27 @@ const formContent = [
     label: 'Nationality',
     dataFieldKey: 'nationality',
   },
+  {
+    streamId: 'family-children',
+    eventType: 'count/generic',
+    type: 'number',
+    label: 'Nb of children',
+    dataFieldKey: 'children-count',
+  },
+  {
+    streamId: 'fertility-miscarriages',
+    eventType: 'count/generic',
+    type: 'number',
+    label: 'Nb of miscarriages',
+    dataFieldKey: 'miscarriages-count',
+  },
+  {
+    streamId: 'fertility-cycles-charted-extimation',
+    eventType: 'count/generic',
+    type: 'number',
+    label: 'Nb of charted cycles',
+    dataFieldKey: 'charted-cycles-count',
+  }
 ];
 
 const dataDefs = {

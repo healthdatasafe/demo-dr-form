@@ -4,6 +4,7 @@ const drLib = {
   showLoginButton,
   getSharingToken,
   getPatientsList,
+  getFields
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
@@ -80,8 +81,15 @@ async function getPatientsList () {
   return patients;
 }
 
+/**
+ * get the list of rows for the table
+ */
+function getFields () {
+  return dataDefs.formContent;
+};
+
 const dataFieldsCache = {};
-function initFieldsCache (event) {
+function initFieldsCache () {
   if (Object.keys(dataFieldsCache).length !== 0) return;
   for (const formField of dataDefs.formContent) {
     const dataFieldId = formField.streamId + ':' + formField.eventType;
@@ -112,7 +120,7 @@ function dataFieldFromEvent (event) {
   return field;
 }
 
-// -------- initualization functions --------
+// -------- init functions --------
 
 /**
  * Initialize the doctor account
