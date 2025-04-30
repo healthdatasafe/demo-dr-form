@@ -125,15 +125,34 @@ async function initSharingWithDr (formApiEndpoint) {
 // ---------------- form content ---------------- //
 
 
-// local copy of formContent + actual values
-let formData = null;
-async function getFormContent () {
-  if (formData) { return formData; }
-  formData = structuredClone(dataDefs.formContent);
-  formInitialized = true; // prevent multiple calls to this function
+// local copy of formProfileContent + actual values
+let formProfileData = null;
+async function getFormContent (formKey) {
+  if (formKey === 'profile') {
+    return getFormProfileContent();
+  }
+  if (formKey === 'historical') {
+    return getFormHistoricalContent();
+  }
+  return [];
+}
+
+async function getFormHistoricalContent () {
+  console.log('## getFormHistoricalContent');
+  const formHistoricalData = structuredClone(dataDefs.formHistoricalContent);
+  formHistoricalData.forEach(field => {
+    field.id = 'field-historical-' + field.dataFieldKey; 
+  });
+  return formHistoricalData;
+}
+
+
+async function getFormProfileContent () {
+  if (formProfileData) { return formProfileData; }
+  formProfileData = structuredClone(dataDefs.formProfileContent);
 
   // get the values from the API
-  const apiCalls = formData.map(field => ({
+  const apiCalls = formProfileData.map(field => ({
     method: 'events.get',
     params: {
       streams: [field.streamId],
@@ -145,8 +164,8 @@ async function getFormContent () {
   const res = await connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
-    const field = formData[i];
-    field.id = 'field-' + i; // generate a unique id for the field
+    const field = formProfileData[i];
+    field.id = 'field-profile-' + field.dataFieldKey;
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
@@ -154,7 +173,7 @@ async function getFormContent () {
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
-  return formData;
+  return formProfileData;
 };
 
 // ---------------- create / update data ---------------- //
@@ -177,9 +196,9 @@ function parseValue (value, type) {
   return value;
 }
 
-async function handleFormSubmit (values) {
+async function handleFormSubmit (formKey, values) {
   const apiCalls = [];
- for (const field of formData) {
+  for (const field of formProfileData) {
     const streamId = field.streamId;
     const eventType = field.eventType;
     const eventId = field.eventId;

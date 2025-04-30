@@ -85,13 +85,13 @@ async function getPatientsList () {
  * get the list of rows for the table
  */
 function getFields () {
-  return dataDefs.formContent;
+  return dataDefs.formProfileContent;
 };
 
 const dataFieldsCache = {};
 function initFieldsCache () {
   if (Object.keys(dataFieldsCache).length !== 0) return;
-  for (const formField of dataDefs.formContent) {
+  for (const formField of dataDefs.formProfileContent) {
     const dataFieldId = formField.streamId + ':' + formField.eventType;
     dataFieldsCache[dataFieldId] = formField;
   }

@@ -23,7 +23,7 @@ const patientBasePermissions = [
   {id: 'body-weight', name: 'Body weight'},
 ]
 
-const formContent = [
+const formProfileContent = [
   {
     streamId: 'profile-name',
     eventType: 'contact/name',
@@ -44,6 +44,14 @@ const formContent = [
     type: 'text',
     label: 'Nationality',
     dataFieldKey: 'nationality',
+  },
+  {
+    streamId: 'profile-sex',
+    eventType: 'attributes/biological-sex',
+    type: 'select',
+    options: [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female'}],
+    label: 'Sex',
+    dataFieldKey: 'sex',
   },
   {
     streamId: 'family-children',
@@ -68,8 +76,63 @@ const formContent = [
   }
 ];
 
+// -- fields lists -- //
+const formHistoricalContent = [
+  {
+    streamId: 'ttc-tta',
+    eventType: 'fertility-intention/ttc-tta',
+    label: 'Trying to conceive / Avoiding pregnancy',
+    dataFieldKey: 'ttc-tta',
+    type: 'select',
+    options: [
+      {
+        value: 0,
+        label: 'TTA - Not taking risks.  Would take all available measures to end a pregnancy.'
+      },
+      {
+        value: 1,
+        label: 'TTA - Not taking risks.  Would strongly consider placing baby for adoption.'
+      },
+      {
+        value: 2,
+        label: 'TTA - Not taking risks.  Would need some time, maybe counseling. Ultimately keeping the pregnancy.'
+      },
+      {
+        value: 4,
+        label: 'TTA - Not taking risks.  Currently content with family size but a surprise pregnancy would be welcome.'
+      },
+      {
+        value: 5,
+        label: 'TTW/TTA - “Loosely TTA” known risks are taken in the fertile window. “OOPS” pregnancy would be welcome.'
+      },
+      {
+        value: 6,
+        label: 'TTW - Charting only for health/curiosity. Unprotected intercourse happens whenever. Pregnancy very welcome.'
+      },
+      {
+        value: 7,
+        label: 'TTW/TTC - Pregnancy very welcome (moving up the scale in very near future).'
+      },
+      {
+        value: 8,
+        label: 'TTC - “Excited to start/grow a family TTC” Intentional intercourse every cycle. Excited to start/grow a family. But would not use any fertility treatments if needed.'
+      },
+      {
+        value: 9,
+        label: 'TTC - “Highly hopeful TTC” Intentional intercourse every cycle. Would consider some but not all fertility treatments if needed.'
+      },
+      {
+        value: 10,
+        label: 'TTC - “ Seriously TTC” Intentional intercourse every cycle. Would pursue any/ALL fertility treatments or procedures if needed.'
+      }
+    ]
+  }
+]
+
+
 const dataDefs = {
   patientBaseStreams,
   patientBasePermissions,
-  formContent
+  formProfileContent,
+  formHistoricalContent
 };
