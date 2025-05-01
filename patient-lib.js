@@ -169,7 +169,18 @@ async function getFormProfileContent () {
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
-      field.value = event.content;
+      if (field.type === 'date' && event.content != null ) {
+        // convert the date to a Date object
+        const date = new Date(event.content);
+        if (!isNaN(date)) {
+          field.value = date.toISOString().split('T')[0]; // format YYYY-MM-DD
+        } else {
+          console.error('## Error parsing date', event.content);
+          field.value = '';
+        }
+      } else {
+        field.value = event.content;
+      }
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
@@ -192,6 +203,12 @@ function parseValue (value, type) {
   }
   if (type === 'boolean') {
     return value === 'true';
+  }
+  if (type === 'date') {
+    if (value instanceof Date && !isNaN(value)) {
+      return value.toISOString();
+    }
+    return value === '';
   }
   return value;
 }

@@ -66,6 +66,8 @@ async function updateFormContent(formKey) {
         fieldHTML += `<option value="${option.value}" ${selected}>${option.label}</option>`;
       }
       fieldHTML += `</select>`;
+    } else if (fieldType === 'date') {
+      fieldHTML += `<input type="date" id="${fieldId}" value="${fieldValue}" class="form-control"/>`;
     }
     // Append the HTML to the form
     document.getElementById('inputs-' + formKey).innerHTML += fieldHTML;
@@ -81,8 +83,13 @@ async function submitForm(formKey) {
   for (let i = 0; i < formData.length; i++) {
     const field = formData[i];
     const fieldId = field.id;
-    const fieldValue = document.getElementById(fieldId).value.trim();
-    values[field.id] = fieldValue; // Store the value in the values object
+    const formField = document.getElementById(fieldId);
+    // Store the value in the values object
+    if (field.type === 'date') {
+      values[field.id] = formField.valueAsDate; 
+    } else {
+      values[field.id] = formField.value.trim(); 
+    }    
   }
   await patientLib.handleFormSubmit(formKey, values);
 };

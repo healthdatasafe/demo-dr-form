@@ -54,6 +54,13 @@ const formProfileContent = [
     dataFieldKey: 'sex',
   },
   {
+    streamId: 'profile-date-of-birth',
+    eventType: 'date/iso-8601',
+    type: 'date',
+    label: 'Date of Birth',
+    dataFieldKey: 'date-of-birth',
+  },
+  {
     streamId: 'family-children',
     eventType: 'count/generic',
     type: 'number',

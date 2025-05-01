@@ -117,6 +117,16 @@ function dataFieldFromEvent (event) {
     value: event.content,
     event: event
   };
+  if (dataField.type === 'date') {
+    // convert the date to a Date object
+    const date = new Date(event.content);
+    if (!isNaN(date)) {
+      field.value = date.toISOString().split('T')[0]; // format YYYY-MM-DD
+    } else {
+      console.error('## Error parsing date', event.content);
+      field.value = '';
+    }
+  }
   return field;
 }
 
