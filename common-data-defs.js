@@ -1,3 +1,4 @@
+
 const patientBaseStreams = [
   // profile
   {id: 'profile-name', name: 'Name', parentId: 'profile'},
@@ -136,10 +137,21 @@ const formHistoricalContent = [
   }
 ]
 
+questionnaires = {
+  'demo-dr-forms-questionary-x': {
+    permissions: patientBasePermissions.map(perm => ({
+      streamId: perm.id,
+      level: 'read',
+      name: perm.name,
+    })),
+    patientBaseStreams
+  }
+}
 
 const dataDefs = {
   patientBaseStreams,
   patientBasePermissions,
   formProfileContent,
-  formHistoricalContent
+  formHistoricalContent,
+  questionnaires
 };

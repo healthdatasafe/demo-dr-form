@@ -5,35 +5,29 @@
  * @param {*} event 
  */
 
-window.onload = (event) => {
-  stateChange('loggedOut');
-  patientLib.showLoginButton('login-button', stateChange);
+window.onload = async (event) => {
+  const { patientApiEndpoint, questionaryId } = getPatientApiEndpoint();
+  console.log('## patientApiEndpoint:', patientApiEndpoint);
+  await connect(patientApiEndpoint, questionaryId);
+  updateFormContent('profile');
   document.getElementById('submit-button-profile').addEventListener("click", function () { submitForm('profile'); });
-  document.getElementById('submit-button-historical').addEventListener("click", function () { submitForm('historical'); });
-};
-
-function stateChange(state) {
-  if (state === 'loggedIN') {
-    document.getElementById('please-login').style.visibility = 'hidden';
-    document.getElementById('card-form').style.visibility = 'visible';
-    getDoctorInfo();
-    updateFormContent('profile');
-    updateFormContent('historical');
-  } else {
-    document.getElementById('please-login').style.visibility = 'visible';
-    document.getElementById('card-form').style.visibility = 'hidden';
-  }
 }
 
+
 // ------- Get Dr's info -------- //
-async function getDoctorInfo() {
+function getPatientApiEndpoint() {
   const params = new URLSearchParams(document.location.search);
-  const formApiEndpoint = params.get('formApiEndpoint');
-  if (!formApiEndpoint) {
-    alert('No formApiEndpoint found in the URL');
+  const patientApiEndpoint = params.get('patientApiEndpoint');
+  const questionaryId = params.get('questionaryId');
+  if (!patientApiEndpoint) {
+    alert('No patientApiEndpoint found in the URL');
     return;
   }
-  await initSharingWithDr(formApiEndpoint);
+  if (!questionaryId) {
+    alert('No questionaryId found in the URL');
+    return;
+  }
+  return { patientApiEndpoint, questionaryId };
 }
 
 

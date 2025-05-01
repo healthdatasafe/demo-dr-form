@@ -62,8 +62,14 @@ async function getPatientsList () {
       };
       const patientConnection = new Pryv.Connection(patient.apiEndpoint);
       // -- get patient info
-      const patientInfo = await patientConnection.accessInfo();
-      patient.username = patientInfo.user.username;
+      try {
+        const patientInfo = await patientConnection.accessInfo();
+        patient.username = patientInfo.user.username;
+      } catch (e) {
+        console.error('## Error getting patient info: ' + patient.apiEndpoint, e);
+        continue;
+      }
+     
 
       // -- get data
       const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);

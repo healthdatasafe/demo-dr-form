@@ -51,6 +51,9 @@ They contains personal data with the following streams
 	- body-height: -event of type "length/*" meters or ...
 	- body-weigth: -event of type "mass/*" kg or ...
 - demo-dr-form: (stream to track states and usage of this app)
+	- inbox
+	- accepted
+	- rejected
 ```
 
 ##### Tracking fertility awareness contents

@@ -13,7 +13,8 @@
 </head>
 <script src="https://api.pryv.com/lib-js/pryv.js"></script>
 <script src="common-data-defs.js"></script>
-<script src="patient-controler.js"></script>
+<script src="patient-home-controler.js"></script>
+<script src="patient-home-lib.js"></script>
 <script src="patient-lib.js"></script>
 
 <body>
@@ -21,7 +22,7 @@
     <img src="https://healthdatasafe.github.io/style/images/Horizontal/hds-logo-hz-1024x400-hz-color.png" alt="Logo" width="300px">
     <h1>Demo Form - Patient's page</h1>
     <div class="card">
-      <div class="card-body">
+      <div class="card-login">
         <h2 class="card-title">Welcome</h2>
         <span id="login-button"></span>
         <br><br>
@@ -37,34 +38,54 @@
         </span>
       </div>
     </div>
-    <div class="card" id="card-form" style="visibility: hidden;">
-      <table width="100%"><tr>
-        <td>    
-          <form id="form-profile">
-            <h2 class="card-title">Profile</h2>
-            <div class="form-group">
-              <div class="input-group" id="inputs-profile">
-                <!-- HERE WILL GO THE INPUTS-->
-              </div>
-            </div>
-            <button type="button" id="submit-button-profile" class="btn btn-primary mb-2">Submit</button>
-          </form>
-        </td>
-        <td>&nbsp &nbsp</td>
-        <td valign="top">  
-          <form id="form-historical">
-            <h2 class="card-title">Historical Data</h2>
-            <div class="form-group">
-              <div class="input-group" id="inputs-historical">
-                <!-- HERE WILL GO THE INPUTS-->
-              </div>
-            </div>
-            <button type="button" id="submit-button-historical" class="btn btn-primary mb-2">Submit</button>
-          </form>
-        </td>
-      </tr></table>
+    <div class="card" id="card-content" style="visibility: hidden;">
+      <h2>Questionnaries</h2>
+      <table id='questionnary-table' class="table">
+        <thead>
+          <th>Questionnary Id</th>
+          <th>Dr username</th>
+          <th>Status</th>
+        </thead>
+        <tbody>
+          <!-- will be filled by getQuestionaires-->
+        </tbody>
+      </table>
+
+      <h2>Questionnary details</h2>
+      <div id="card-questionnary-details">
+        <span id="card-questionnary-details-nothing">
+          <h3>Nothing selected</h3>
+          <p>Please select a questionnary to see its details.</p>
+        </span>
+        <div id="card-questionnary-details-something" style="display: none;">
+          <table>
+            <tr>
+              <td>
+                <h3>Permission request</h3>
+                <table id="access-request" border="1" class="table" width="30%">
+                  <thead>
+                    <th><B>Stream</B></th>
+                    <th><B>Level</B></th>
+                  </thead>
+                  <tbody>
+                    <!-- will be filled by getQuestionaireDetails-->
+                  </tbody>
+                </table>
+              </td>
+              <td>
+                <button type="button" id="grant-access-button" class="btn btn-primary mb-2">Open</button>
+              </td>
+            </tr>
+          </table>
+          
+          <br>
+
+          <br>
+          <h3>JSON detail</h3>
+          <span id="card-questionnary-details-content"></span>
+        </div>
+      </div>
     </div>
   </div>
 </body>
-
 </html>
