@@ -155,11 +155,13 @@ questionnaires = {
     forms: {
       profile: {
         type: 'permanent',
+        key: 'profile-x',
         name: 'Profile',
         content: formProfileContent
       },
       historical: {
         type: 'recurring',
+        key: 'recurring-x',
         name: 'Historical',
         content: formHistoricalContent
       }
@@ -168,9 +170,5 @@ questionnaires = {
 }
 
 const dataDefs = {
-  patientBaseStreams,
-  patientBasePermissions,
-  formProfileContent,
-  formHistoricalContent,
   questionnaires
 };

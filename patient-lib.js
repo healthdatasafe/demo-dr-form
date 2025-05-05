@@ -15,8 +15,6 @@ async function connect (apiEndpoint, questionaryId) {
 
 // ---------------- form content ---------------- //
 
-
-
 async function getFormContent (questionaryId, formKey) {
   const form = dataDefs.questionnaires[questionaryId].forms[formKey];
   console.log('## getFormContent', form);

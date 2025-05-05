@@ -15,7 +15,7 @@ async function stateChange(state) {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('data-view').style.visibility = 'visible';
     setSharingLink();
-    setPatientList();
+    setPatientList('demo-dr-forms-questionary-x');
   } else {
     document.getElementById('please-login').style.visibility = 'visible';
     document.getElementById('data-view').style.visibility = 'hidden';
@@ -26,9 +26,9 @@ const rowItems = ['name', 'surname', 'nationality'];
 /**
  * Update the patient list
  */
-async function setPatientList() {
+async function setPatientList(questionaryId) {
   const table = document.getElementById('patients-table');
-  const fields = drLib.getFields();
+  const fields = drLib.getFields(questionaryId);
   // --- headers
   const headerRow = table.insertRow(-1);
   const headerStatusCell = document.createElement("TH");
@@ -44,7 +44,7 @@ async function setPatientList() {
   }
 
   // --- patients
-  const patients = await drLib.getPatientsList('demo-dr-forms-questionary-x', 100);
+  const patients = await drLib.getPatientsList(questionaryId, 100);
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
     const cellStatus = row.insertCell(-1);

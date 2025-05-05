@@ -93,6 +93,7 @@ async function getPatientsList (questionnaryId, limit = 100) {
  * get patients details
  */
 async function getPatientDetails (questionnaryId, patientEvent) {
+  // -- check if the event is a patient event
   if (patientEvent.type !== 'credentials/pryv-api-endpoint') return null;
   const patient = {
     status: 'active',
@@ -133,13 +134,25 @@ async function getPatientDetails (questionnaryId, patientEvent) {
   
 
   // -- get data
-  
-  const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);
-  for (const profileEvent of profileEvents[0].events) {
-    const field = dataFieldFromEvent(profileEvent);
-    if (field && patient.formData[field.key] == null) { // drop historical values 
-      patient.formData[field.key] = field;
+  // get profile form data
+  const formProfile = dataDefs.questionnaires[questionnaryId].forms.profile;
+
+  // get the last value of each field
+  const apiCalls = formProfile.content.map(field => ({
+    method: 'events.get',
+    params: {
+      streams: [field.streamId],
+      types: [field.eventType],
+      limit: 1,
     }
+  }));
+
+  const profileEventsResults = await patientConnection.api(apiCalls);
+  for (const profileEventRes of profileEventsResults) {
+    const profileEvent = profileEventRes?.events[0];
+    if (!profileEvent) continue;
+    const field = dataFieldFromEvent(formProfile, profileEvent);
+    patient.formData[field.key] = field;
   }
   return patient;
 }
@@ -150,25 +163,31 @@ async function getPatientDetails (questionnaryId, patientEvent) {
 /**
  * get the list of rows for the table
  */
-function getFields () {
-  return dataDefs.formProfileContent;
+function getFields (questionaryId) {
+  return dataDefs.questionnaires[questionaryId].forms.profile.content;
 };
 
-const dataFieldsCache = {};
-function initFieldsCache () {
-  if (Object.keys(dataFieldsCache).length !== 0) return;
-  for (const formField of dataDefs.formProfileContent) {
+const dataFieldsCaches = {};
+function initFieldsCache (formProfile) {
+  if (dataFieldsCaches[formProfile.key] == null) {
+    dataFieldsCaches[formProfile.key] = {};
+  }
+  const dataFieldsCache = dataFieldsCaches[formProfile.key];
+
+  if (Object.keys(dataFieldsCache).length !== 0) return dataFieldsCache;
+  for (const formField of formProfile.content) {
     const dataFieldId = formField.streamId + ':' + formField.eventType;
     dataFieldsCache[dataFieldId] = formField;
   }
+  return dataFieldsCache;
 }
 
 /**
  * Link an event to a data field from form
  * @param {*} event 
  */
-function dataFieldFromEvent (event) {
-  initFieldsCache(event);
+function dataFieldFromEvent (formProfile, event) {
+  const dataFieldsCache = initFieldsCache(formProfile);
   const formFieldId = event.streamId + ':' + event.type;
   const dataField = dataFieldsCache[formFieldId];
   if (!dataField) {
