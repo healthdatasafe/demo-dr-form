@@ -108,7 +108,7 @@ async function grantAccess (formInfo, formDetails) {
   }]);
   const createdAccess = accessRes[0].access;
   console.log('## Patient shared access created', accessRes);
-  publishAccess (formInfo, createdAccess.apiEndpoint);
+  await publishAccess (formInfo, createdAccess.apiEndpoint);
 }
 
 async function publishAccess (formInfo, apiEndpoint) {

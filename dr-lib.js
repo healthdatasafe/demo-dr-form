@@ -1,4 +1,4 @@
-let connection = null;
+let drConnection = null;
 
 const drLib = {
   showLoginButton,
@@ -36,12 +36,12 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
   async function pryvAuthStateChange(state) { // called each time the authentication state changes
     console.log('##pryvAuthStateChange', state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
-      connection = new Pryv.Connection(state.apiEndpoint);
-      await initDrAccount(connection);
+      drConnection = new Pryv.Connection(state.apiEndpoint);
+      await initDrAccount(drConnection);
       stateChangeCallBack('loggedIN');
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
-      connection = null;
+      drConnection = null;
       stateChangeCallBack('loggedOUT');
     }
   }
@@ -52,40 +52,76 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
 const patients = {};
 
 async function getPatientsList () {
-  const res = await connection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'] } }]);
+  const res = await drConnection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'] } }]);
   const patientApiEndpointEvents = res[0].events;
-  for (const event of patientApiEndpointEvents) {
-    if (event.type === 'credentials/pryv-api-endpoint') {
-      const patient = {
-        apiEndpoint: event.content,
-        formData: {}
-      };
-      const patientConnection = new Pryv.Connection(patient.apiEndpoint);
-      // -- get patient info
-      try {
-        const patientInfo = await patientConnection.accessInfo();
-        patient.username = patientInfo.user.username;
-      } catch (e) {
-        console.error('## Error getting patient info: ' + patient.apiEndpoint, e);
-        continue;
-      }
-     
-
-      // -- get data
-      const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);
-      for (const profileEvent of profileEvents[0].events) {
-        const field = dataFieldFromEvent(profileEvent);
-        if (field) {
-          patient.formData[field.key] = field;
-        }
-      }
-      patients[patient.username] = patient;
+  for (const patientEvent of patientApiEndpointEvents) {
+    const patient = await getPatientDetails(patientEvent);
+    if (patient) {
+      patients[patient.apiEndpoint] = patient;
+      console.log('## Patient details', patient);
     }
   }
 
   console.log('## Patients list', patients);
   return patients;
 }
+
+/**
+ * get patients details
+ */
+async function getPatientDetails (patientEvent) {
+  if (patientEvent.type !== 'credentials/pryv-api-endpoint') return null;
+  const patient = {
+    status: 'active',
+    apiEndpoint: patientEvent.content,
+    formData: {}
+  };
+  const patientConnection = new Pryv.Connection(patient.apiEndpoint);
+
+  // -- get patient data 
+  if (! patientEvent.streamIds.includes('patients-revoked')) {
+    // -- get patient info
+    try {
+      const patientInfo = await patientConnection.accessInfo();
+      patient.username = patientInfo.user.username;
+    } catch (e) {
+      console.error('## Error getting patient info: ' + patient.apiEndpoint, e);
+      // -- mark as revoked
+      const revokeRequest = await drConnection.api([{
+        method: 'events.update',
+        params: {
+          id: patientEvent.id,
+          update: {
+            streamIds: ['patients-revoked']
+          }
+        }}]);
+      console.log('## Patient maked as revoked', revokeRequest);
+      patientEvent.streamIds = ['patients-revoked'];
+    }
+  }
+
+  // -- mark as revoked
+  if (patientEvent.streamIds.includes('patients-revoked')) {
+    patient.status = 'revoked';
+    const usernameFromApiEndpoint = patientEvent.content.split('/')[3];
+    patient.username = patientEvent.clientData?.username || usernameFromApiEndpoint;
+    return patient;
+   };
+  
+
+  // -- get data
+  const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);
+  for (const profileEvent of profileEvents[0].events) {
+    const field = dataFieldFromEvent(profileEvent);
+    if (field) {
+      patient.formData[field.key] = field;
+    }
+  }
+  return patient;
+}
+
+
+
 
 /**
  * get the list of rows for the table
@@ -152,13 +188,13 @@ async function initDrAccount (connection) {
  * @returns 
  */
 async function getSharingToken () {
-  const accessesCheckRes = await connection.api([{ method: 'accesses.get', params: {}}]);
+  const accessesCheckRes = await drConnection.api([{ method: 'accesses.get', params: {}}]);
   const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === 'demo-dr-form-shared');
   if (sharedAccess) {
     console.log('## Dr account already has a shared access');
     return sharedAccess.apiEndpoint;
   }
-  const accessRes = await connection.api([{ 
+  const accessRes = await drConnection.api([{ 
     method: 'accesses.create', 
     params: {
       name: 'demo-dr-form-shared',
@@ -189,7 +225,7 @@ async function getSharingToken () {
 
 async function initStreams () {
   // check if the account is already initialized
-  const resStreams = await connection.api([{ method: 'streams.get', params: { parentId: 'patients' } }]);
+  const resStreams = await drConnection.api([{ method: 'streams.get', params: { parentId: 'patients' } }]);
   if (resStreams[0].streams.length > 0) {
     console.log('## Dr account streams already initialized');
     return;
@@ -223,6 +259,14 @@ async function initStreams () {
     { 
       method: 'streams.create',
       params: {
+        id: 'patients-revoked',
+        name: 'Patients Revoked',
+        parentId: 'patients'
+      }
+    },
+    { 
+      method: 'streams.create',
+      params: {
         id: 'demo-dr-forms',
         name: 'Demo Dr Forms'
       }
@@ -235,6 +279,6 @@ async function initStreams () {
       }
     }
   ];
-  const result = await connection.api(apiCalls);
+  const result = await drConnection.api(apiCalls);
   console.log('## Dr account streams created', result);
 }

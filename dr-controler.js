@@ -31,6 +31,9 @@ async function setPatientList() {
   const fields = drLib.getFields();
   // --- headers
   const headerRow = table.insertRow(-1);
+  const headerStatusCell = document.createElement("TH");
+  headerStatusCell.innerHTML = 'Status';
+  headerRow.appendChild(headerStatusCell);
   const headerUserCell = document.createElement("TH");
   headerUserCell.innerHTML = 'Username';
   headerRow.appendChild(headerUserCell);
@@ -44,6 +47,8 @@ async function setPatientList() {
   const patients = await drLib.getPatientsList();
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
+    const cellStatus = row.insertCell(-1);
+    cellStatus.innerHTML = patient.status;
     const cellUsername = row.insertCell(-1);
     cellUsername.innerHTML = patient.username;
     for (const field of fields) {

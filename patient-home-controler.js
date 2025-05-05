@@ -78,7 +78,8 @@ async function showFormDetails(formInfo) {
   if (formDetails.status === 'accepted') {
     button.innerHTML = 'Open';
     button.onclick = async function () {
-      // await patientHomeLib.publishAccess(formInfo, formDetails.sharedApiEndpoint);
+      // -- hack publish access anyway (this should be done just once)
+      await patientHomeLib.publishAccess(formInfo, formDetails.sharedApiEndpoint);
       document.location.href = openHREF;
     };
   }
