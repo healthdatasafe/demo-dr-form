@@ -13,7 +13,7 @@
 </head>
 <script src="https://api.pryv.com/lib-js/pryv.js"></script>
 <script src="common-data-defs.js"></script>
-<script src="patient-controler.js"></script>
+<script src="patient-history-controler.js"></script>
 <script src="patient-lib.js"></script>
 
 <body>
@@ -21,31 +21,25 @@
     <img src="https://healthdatasafe.github.io/style/images/Horizontal/hds-logo-hz-1024x400-hz-color.png" alt="Logo" width="300px">
     <h1>Demo Form - Patient's page</h1>
     <div class="card">
-      <div class="card-login">
-        <h2 class="card-title">Welcome</h2>
-        <span id="login-button"></span>
-        <br><br>
-        <span id="welcome-message-mme">
-          Dear Madam, from this page you will answer a questionnary to be shared with your Doctor.
-        </span>
-        <br>
-        <span id="welcome-message-viewer" style="visibility: hidden;"> Welcome message
-        </span>
-        <br>
-        <span id="please-login">
-          Please login.
-        </span>
+      <div class="card-header">
+        <table> 
+          <tr>
+            <td><A HREF="patient.html" class="btn btn-primary">Home</A></td>
+            <td>&nbsp;</td>
+            <td><button id="nav-profile" class="btn btn-primary">Profile</button></td>
+          </tr>
+        </table>
       </div>
     </div>
-    <div class="card" id="card-content" style="visibility: hidden;">
-      <form id="form-historical">
+    <div class="card" id="card-content" >
+      <form id="form-history">
         <h2 class="card-title">Historical Data</h2>
         <div class="form-group">
-          <div class="input-group" id="inputs-historical">
+          <div class="input-group" id="inputs-history">
             <!-- HERE WILL GO THE INPUTS-->
           </div>
         </div>
-        <button type="button" id="submit-button-historical" class="btn btn-primary mb-2">Submit</button>
+        <button type="button" id="submit-button-history" class="btn btn-primary mb-2">Submit</button>
       </form>
     </div>
   </div>

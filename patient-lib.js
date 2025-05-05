@@ -1,27 +1,33 @@
 const patientLib = {
   handleFormSubmit,
   getFormContent,
-  connect
+  connect,
+  getNavigationQueryParams
 }
 
 let connection = null;
-let questionaryId = null;
+let _questionaryId = null;
 async function connect (apiEndpoint, questionaryId) {
   connection = new Pryv.Connection(apiEndpoint);
+  _questionaryId = questionaryId;
   const accessInfo = await connection.accessInfo();
   console.log('## Patient connected', accessInfo);
   return accessInfo;
+}
+
+function getNavigationQueryParams() {
+  return `?patientApiEndpoint=${connection.apiEndpoint}&questionaryId=${_questionaryId}`
 }
 
 // ---------------- form content ---------------- //
 
 async function getFormContent (questionaryId, formKey) {
   const form = dataDefs.questionnaires[questionaryId].forms[formKey];
-  console.log('## getFormContent', form);
+  console.log('## getFormContent', form, questionaryId, formKey);
   if (form.type === 'permanent') {
     return getFormPermanentContent(form);
   }
-  if (formKey === 'recurring') {
+  if (form.type === 'recurring') {
     return getFormRecurringContent(form);
   }
   return [];

@@ -159,10 +159,10 @@ questionnaires = {
         name: 'Profile',
         content: formProfileContent
       },
-      historical: {
+      history: {
         type: 'recurring',
         key: 'recurring-x',
-        name: 'Historical',
+        name: 'History',
         content: formHistoricalContent
       }
     }

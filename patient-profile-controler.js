@@ -9,14 +9,20 @@ window.onload = async (event) => {
   const { patientApiEndpoint, questionaryId } = getPatientApiEndpointAndFormId();
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await connect(patientApiEndpoint, questionaryId);
+  // -- navigation
+  document.getElementById('nav-history').onclick = () => {
+    document.location.href = 'patient-history.html' + patientLib.getNavigationQueryParams();
+  };
+  // -- content
   updateFormContent(questionaryId, 'profile');
   document.getElementById('submit-button-profile').addEventListener("click", function () { 
     submitForm(questionaryId, 'profile'); 
   });
+  
 }
 
 
-// ------- Get Dr's info -------- //
+// ------- Get Questionnary and endpoint info -------- //
 function getPatientApiEndpointAndFormId() {
   const params = new URLSearchParams(document.location.search);
   const patientApiEndpoint = params.get('patientApiEndpoint');
