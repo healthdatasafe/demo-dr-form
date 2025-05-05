@@ -9,9 +9,9 @@ window.onload = async (event) => {
   const { patientApiEndpoint, questionaryId } = getPatientApiEndpointAndFormId();
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await connect(patientApiEndpoint, questionaryId);
-  updateFormContent('profile');
+  updateFormContent(questionaryId, 'profile');
   document.getElementById('submit-button-profile').addEventListener("click", function () { 
-    submitForm('profile'); 
+    submitForm(questionaryId, 'profile'); 
   });
 }
 
@@ -38,8 +38,8 @@ function getPatientApiEndpointAndFormId() {
 /**
  * Take the from content from the definition and actual values and create the HTML
  */
-async function updateFormContent(formKey) {
-  const formData = await patientLib.getFormContent(formKey);
+async function updateFormContent(questionaryId, formKey) {
+  const formData = await patientLib.getFormContent(questionaryId, formKey);
   console.log('Form content:', formData);
  
   document.getElementById('inputs-' + formKey).innerHTML = ''; // Clear previous content
@@ -73,9 +73,9 @@ async function updateFormContent(formKey) {
 /**
  * Submit the form and send the data to the API
  */
-async function submitForm(formKey) {
+async function submitForm(questionaryId, formKey) {
   const values = {};
-  const formData = await patientLib.getFormContent(formKey);
+  const formData = await patientLib.getFormContent(questionaryId, formKey);
   for (let i = 0; i < formData.length; i++) {
     const field = formData[i];
     const fieldId = field.id;
@@ -87,6 +87,6 @@ async function submitForm(formKey) {
       values[field.id] = formField.value.trim(); 
     }    
   }
-  await patientLib.handleFormSubmit(formKey, values);
+  await patientLib.handleFormSubmit(questionaryId, formKey, values);
   alert('Form submitted successfully');
 };

@@ -44,7 +44,7 @@ async function setPatientList() {
   }
 
   // --- patients
-  const patients = await drLib.getPatientsList(100);
+  const patients = await drLib.getPatientsList('demo-dr-forms-questionary-x', 100);
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
     const cellStatus = row.insertCell(-1);

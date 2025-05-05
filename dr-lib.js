@@ -51,7 +51,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
 
 const patients = {};
 
-async function getPatientsList (limit = 100) {
+async function getPatientsList (questionnaryId, limit = 100) {
   const res = await drConnection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'], limit } }]);
   const patientApiEndpointEvents = res[0].events;
 
@@ -78,7 +78,7 @@ async function getPatientsList (limit = 100) {
 
   // -- get the patients
   for (const patientEvent of Object.values(uniques)) {
-    const patient = await getPatientDetails(patientEvent);
+    const patient = await getPatientDetails(questionnaryId, patientEvent);
     if (patient) {
       patients[patient.apiEndpoint] = patient;
       console.log('## Patient details', patient);
@@ -92,7 +92,7 @@ async function getPatientsList (limit = 100) {
 /**
  * get patients details
  */
-async function getPatientDetails (patientEvent) {
+async function getPatientDetails (questionnaryId, patientEvent) {
   if (patientEvent.type !== 'credentials/pryv-api-endpoint') return null;
   const patient = {
     status: 'active',
@@ -123,7 +123,7 @@ async function getPatientDetails (patientEvent) {
     }
   }
 
-  // -- mark as revoked
+  // -- marked revoked
   if (patientEvent.streamIds.includes('patients-revoked')) {
     patient.status = 'revoked';
     const usernameFromApiEndpoint = patientEvent.content.split('/')[3];
@@ -133,6 +133,7 @@ async function getPatientDetails (patientEvent) {
   
 
   // -- get data
+  
   const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);
   for (const profileEvent of profileEvents[0].events) {
     const field = dataFieldFromEvent(profileEvent);

@@ -16,34 +16,35 @@ async function connect (apiEndpoint, questionaryId) {
 // ---------------- form content ---------------- //
 
 
-// local copy of formProfileContent + actual values
-let formProfileData = null;
-async function getFormContent (formKey) {
-  if (formKey === 'profile') {
-    return getFormProfileContent();
+
+async function getFormContent (questionaryId, formKey) {
+  const form = dataDefs.questionnaires[questionaryId].forms[formKey];
+  console.log('## getFormContent', form);
+  if (form.type === 'permanent') {
+    return getFormPermanentContent(form);
   }
-  if (formKey === 'historical') {
-    return getFormHistoricalContent();
+  if (formKey === 'recurring') {
+    return getFormRecurringContent(form);
   }
   return [];
 }
 
-async function getFormHistoricalContent () {
-  console.log('## getFormHistoricalContent');
-  const formHistoricalData = structuredClone(dataDefs.formHistoricalContent);
-  formHistoricalData.forEach(field => {
+async function getFormRecurringContent (form) {
+  const formReccuringData = structuredClone(form.content);
+  formReccuringData.forEach(field => {
     field.id = 'field-historical-' + field.dataFieldKey; 
   });
-  return formHistoricalData;
+  return formReccuringData;
 }
 
-
-async function getFormProfileContent () {
-  if (formProfileData) { return formProfileData; }
-  formProfileData = structuredClone(dataDefs.formProfileContent);
+// local copy of formProfileContent + actual values
+let formPermanentData = null;
+async function getFormPermanentContent (form) {
+  if (formPermanentData) { return formPermanentData; }
+  formPermanentData = structuredClone(form.content);
 
   // get the values from the API
-  const apiCalls = formProfileData.map(field => ({
+  const apiCalls = formPermanentData.map(field => ({
     method: 'events.get',
     params: {
       streams: [field.streamId],
@@ -55,7 +56,7 @@ async function getFormProfileContent () {
   const res = await connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
-    const field = formProfileData[i];
+    const field = formPermanentData[i];
     field.id = 'field-profile-' + field.dataFieldKey;
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
@@ -75,7 +76,7 @@ async function getFormProfileContent () {
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
-  return formProfileData;
+  return formPermanentData;
 };
 
 // ---------------- create / update data ---------------- //
@@ -104,9 +105,9 @@ function parseValue (value, type) {
   return value;
 }
 
-async function handleFormSubmit (formKey, values) {
+async function handleFormSubmit (questionaryId, formKey, values) {
   const apiCalls = [];
-  for (const field of formProfileData) {
+  for (const field of formPermanentData) {
     const streamId = field.streamId;
     const eventType = field.eventType;
     const eventId = field.eventId;

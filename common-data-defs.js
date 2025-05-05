@@ -151,7 +151,19 @@ questionnaires = {
       level: 'read',
       name: perm.name,
     })),
-    patientBaseStreams
+    patientBaseStreams,
+    forms: {
+      profile: {
+        type: 'permanent',
+        name: 'Profile',
+        content: formProfileContent
+      },
+      historical: {
+        type: 'recurring',
+        name: 'Historical',
+        content: formHistoricalContent
+      }
+    }
   }
 }
 
