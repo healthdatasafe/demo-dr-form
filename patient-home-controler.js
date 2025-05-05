@@ -34,13 +34,18 @@ function getRequestFrormApiEndPoint() {
 // --------- Update form list --------- //
 async function showFormList(formsInfo) {
   console.log('## showFormList', formsInfo);
+
+
+  // -- table
   const table = document.getElementById('questionnary-table');
+
+
   for (const formInfo of formsInfo) {
    
     // fill the table row
     const row = table.insertRow(-1);
     const cellQuestionnary = row.insertCell(-1);
-    cellQuestionnary.innerHTML = formInfo.questionaryId;
+    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${formInfo.questionaryId}</button>`;
     cellQuestionnary.onclick = function () {
       showFormDetails(formInfo);
     };
@@ -61,10 +66,21 @@ async function showFormDetails(formInfo) {
   if (!show) return;
   const formDetails = await patientHomeLib.getQuestionnaryDetails(formInfo);
   console.log('## showFormDetails', formDetails);
+
+  // - form title
+  const formTitle = document.getElementById('card-questionnary-details-title');
+  formTitle.innerHTML = formInfo.questionaryId;
+
   // - permissions
-  const table = document.getElementById('access-request');
+  const tbody = document.getElementById('access-request').getElementsByTagName('tbody')[0];;
+
+  // clear previous content
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
+
   for (const permission of formDetails.permissions) {
-    const row = table.insertRow(-1);
+    const row = tbody.insertRow(-1);
     const cellStream = row.insertCell(-1);
     cellStream.innerHTML = permission.name;
     const cellLevel = row.insertCell(-1);
@@ -92,6 +108,6 @@ async function showFormDetails(formInfo) {
   }
 
   // - json
-  const jsonContent = document.getElementById('card-questionnary-details-content');
-  jsonContent.innerHTML = '<pre>' + JSON.stringify(formInfo.formEvent, null, 2) + '<pre>';
+  // const jsonContent = document.getElementById('card-questionnary-details-content');
+  // jsonContent.innerHTML = '<pre>' + JSON.stringify(formInfo.formEvent, null, 2) + '<pre>';
 }

@@ -10,7 +10,9 @@ window.onload = async (event) => {
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await connect(patientApiEndpoint, questionaryId);
   updateFormContent('profile');
-  document.getElementById('submit-button-profile').addEventListener("click", function () { submitForm('profile'); });
+  document.getElementById('submit-button-profile').addEventListener("click", function () { 
+    submitForm('profile'); 
+  });
 }
 
 
@@ -86,4 +88,5 @@ async function submitForm(formKey) {
     }    
   }
   await patientLib.handleFormSubmit(formKey, values);
+  alert('Form submitted successfully');
 };

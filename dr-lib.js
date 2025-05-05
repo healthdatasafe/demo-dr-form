@@ -51,10 +51,33 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
 
 const patients = {};
 
-async function getPatientsList () {
-  const res = await drConnection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'] } }]);
+async function getPatientsList (limit = 100) {
+  const res = await drConnection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'], limit } }]);
   const patientApiEndpointEvents = res[0].events;
+
+  // -- remove duplicates
+  const duplicateEventId = [];
+  const uniques = {};
   for (const patientEvent of patientApiEndpointEvents) {
+    if (patientEvent.type === 'credentials/pryv-api-endpoint') {
+      const apiEndpoint = patientEvent.content;
+      if (uniques[apiEndpoint]) {
+        // -- duplicate
+        duplicateEventId.push(patientEvent.id);
+        console.log('## Duplicate patient event', patientEvent);
+      } else {
+        uniques[apiEndpoint] = patientEvent;
+      }
+    }
+  }
+  if (duplicateEventId.length > 0) {
+    const removeDuplicatesApiCalls = duplicateEventId.map(id => ({ method: 'events.delete', params: { id} }));
+    const removeDuplicates = await drConnection.api(removeDuplicatesApiCalls);
+    console.log('## Removed duplicates', removeDuplicates);
+  }
+
+  // -- get the patients
+  for (const patientEvent of Object.values(uniques)) {
     const patient = await getPatientDetails(patientEvent);
     if (patient) {
       patients[patient.apiEndpoint] = patient;

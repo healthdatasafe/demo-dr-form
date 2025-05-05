@@ -15,7 +15,6 @@
 <script src="common-data-defs.js"></script>
 <script src="patient-home-controler.js"></script>
 <script src="patient-home-lib.js"></script>
-<script src="patient-lib.js"></script>
 
 <body>
   <div class="container">
@@ -55,9 +54,10 @@
       <div id="card-questionnary-details">
         <span id="card-questionnary-details-nothing">
           <h3>Nothing selected</h3>
-          <p>Please select a questionnary to see its details.</p>
+          <p>Please select a questionnary on the list above.</p>
         </span>
         <div id="card-questionnary-details-something" style="display: none;">
+          <h3> Questionnary: <span id="card-questionnary-details-title"></span></h3>
           <table>
             <tr>
               <td>
@@ -67,11 +67,12 @@
                     <th><B>Stream</B></th>
                     <th><B>Level</B></th>
                   </thead>
-                  <tbody>
+                  <tbody id="access-request-body">
                     <!-- will be filled by getQuestionaireDetails-->
                   </tbody>
                 </table>
               </td>
+              <td>&nbsp; &nbsp;</td>
               <td>
                 <button type="button" id="grant-access-button" class="btn btn-primary mb-2">Open</button>
               </td>
