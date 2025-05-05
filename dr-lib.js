@@ -136,7 +136,7 @@ async function getPatientDetails (patientEvent) {
   const profileEvents = await patientConnection.api([{ method: 'events.get', params: { limit: 100 } }]);
   for (const profileEvent of profileEvents[0].events) {
     const field = dataFieldFromEvent(profileEvent);
-    if (field) {
+    if (field && patient.formData[field.key] == null) { // drop historical values 
       patient.formData[field.key] = field;
     }
   }

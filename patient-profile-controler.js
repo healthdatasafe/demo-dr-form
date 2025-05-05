@@ -6,7 +6,7 @@
  */
 
 window.onload = async (event) => {
-  const { patientApiEndpoint, questionaryId } = getPatientApiEndpoint();
+  const { patientApiEndpoint, questionaryId } = getPatientApiEndpointAndFormId();
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await connect(patientApiEndpoint, questionaryId);
   updateFormContent('profile');
@@ -17,7 +17,7 @@ window.onload = async (event) => {
 
 
 // ------- Get Dr's info -------- //
-function getPatientApiEndpoint() {
+function getPatientApiEndpointAndFormId() {
   const params = new URLSearchParams(document.location.search);
   const patientApiEndpoint = params.get('patientApiEndpoint');
   const questionaryId = params.get('questionaryId');

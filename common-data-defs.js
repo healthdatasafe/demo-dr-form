@@ -1,19 +1,26 @@
 
 const patientBaseStreams = [
   // profile
+  {id: 'profile', name: 'Profile'},
   {id: 'profile-name', name: 'Name', parentId: 'profile'},
   {id: 'profile-nationality', name: 'Nationality', parentId: 'profile'},
   {id: 'profile-date-of-birth', name: 'Date of Birth', parentId: 'profile'},
   {id: 'profile-location', name: 'Location', parentId: 'profile'},
   {id: 'profile-sex', name: 'Sex', parentId: 'profile'},
   // family
+  {id: 'family', name: 'Family'},
   {id: 'family-children', name: 'Children', parentId: 'family'},
   // fertility
+  {id: 'fertility', name: 'Fertility'},
   {id: 'fertility-miscarriages', name: 'Miscarriages', parentId: 'fertility'},
   {id: 'fertility-traings', name: 'Trainings', parentId: 'fertility'},
   {id: 'fertility-cycles', name: 'Cycles', parentId: 'fertility'},
   {id: 'fertility-cycles-charted-extimation', name: 'Cycles charted estimation', parentId: 'fertility'},
   {id: 'fertility-ttc-tta', name: 'Trying to conceive / Avoiding pregnancy', parentId: 'fertility'},
+  // body
+  {id: 'body', name: 'Body'},
+  {id: 'body-height', name: 'Body Height', parentId: 'body'},
+  {id: 'body-weight', name: 'Body Weight', parentId: 'body'},
 ];
 
 const patientBasePermissions = [

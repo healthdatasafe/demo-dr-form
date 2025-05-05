@@ -112,6 +112,10 @@ async function grantAccess (formInfo, formDetails) {
 }
 
 async function publishAccess (formInfo, apiEndpoint) {
+  // create needed base streams
+  const baseStreams = dataDefs.questionnaires[formInfo.questionaryId].patientBaseStreams;
+  await createsPatientAccountStreams(connection, baseStreams);
+
   // publishing access on Dr Account
   const apiCalls = [{
     method: 'events.create',
@@ -180,12 +184,6 @@ function getPatientApiEndpoint() {
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
-
-  // const requestedPermissions = dataDefs.patientBasePermissions.map(perm => ({
-  //   streamId: perm.id,
-  //   defaultName: perm.name,
-  //   level: 'manage'
-  // }));
  
    const requestedPermissions = [{
      streamId: '*',
