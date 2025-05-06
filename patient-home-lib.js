@@ -1,12 +1,20 @@
 const patientHomeLib = {
   getForms,
   getQuestionnaryDetails,
-  getQuestionnaryInfo,
   grantAccess,
   showLoginButton,
   getPatientApiEndpoint,
-  publishAccess
+  publishAccess,
+  revokeAccess
 }
+
+const AppBaseStreams = {
+  base: {id: 'demo-dr-forms', name: 'Demo Dr Forms'},
+  inbox: {id: 'demo-dr-forms-inbox', name: 'Demo Dr Forms - Inbox', parentId: 'demo-dr-forms'},
+  accepted: {id: 'demo-dr-forms-accepted', name: 'Demo Dr Forms - Accepted', parentId: 'demo-dr-forms'},
+  rejected: {id: 'demo-dr-forms-rejected', name: 'Demo Dr Forms - Rejected', parentId: 'demo-dr-forms'},
+};
+
 
 /**
  * Load app & get the forms
@@ -19,7 +27,7 @@ async function getForms (formApiEndpoint) {
   // init base for streams
   await initBaseFormsStreams(connection);
   // get list of form
-  const eventRes = await connection.api([{ method: 'events.get', params: { streams: ['demo-dr-forms'], limit: 100}}]);
+  const eventRes = await connection.api([{ method: 'events.get', params: { streams: [AppBaseStreams.base.id], limit: 100}}]);
 
   const forms = eventRes[0].events;
 
@@ -30,7 +38,7 @@ async function getForms (formApiEndpoint) {
       const apiCalls = [{
         method: 'events.create',
         params: {
-          streamIds: ['demo-dr-forms-inbox'],
+          streamIds: [AppBaseStreams.inbox.id],
           type: 'credentials/pryv-api-endpoint',
           content: formApiEndpoint
         }
@@ -45,7 +53,7 @@ async function getForms (formApiEndpoint) {
   const formsInfo = [];
   // add forms details 
   for (const formEvent of forms) {
-    const formInfo = await patientHomeLib.getQuestionnaryInfo(formEvent);
+    const formInfo = await getQuestionnaryInfo(formEvent);
     formsInfo.push(formInfo);
   }
 
@@ -56,12 +64,7 @@ async function getForms (formApiEndpoint) {
 
 // Creates the the streams structure for accepted and rejected froms
 async function initBaseFormsStreams (connection) {
-  const streams = [
-    {id: 'demo-dr-forms', name: 'Demo Dr Forms'},
-    {id: 'demo-dr-forms-inbox', name: 'Demo Dr Forms - Inbox', parentId: 'demo-dr-forms'},
-    {id: 'demo-dr-forms-accepted', name: 'Demo Dr Forms - Accepted', parentId: 'demo-dr-forms'},
-    {id: 'demo-dr-forms-rejected', name: 'Demo Dr Forms - Rejected', parentId: 'demo-dr-forms'},
-  ];
+  const streams = Object.values(AppBaseStreams);
   await createsPatientAccountStreams(connection, streams);
 }
 
@@ -127,22 +130,66 @@ async function publishAccess (formInfo, apiEndpoint) {
   }];
   const publishRes = await formInfo.drConnection.api(apiCalls);
   console.log('## Shared access published to Dr Account', publishRes);
+  if (! publishRes[0].event) {
+    const error = new Error('Failed publishing Acces');
+    error.innerObject = publishRes
+    throw error;
+  }
+  // -- update access and place in 'demo-dr-forms-accepted'
+  await updateEventFormStatus(formInfo, 'accepted');
+}
+
+/**
+ * 
+ * @param {*} formInfo 
+ * @param {string} newStatus 'accepted', 'rejected'
+ */
+async function updateEventFormStatus (formInfo, newStatus) {
+  const newStreamId = AppBaseStreams[newStatus].id;
+  const previousStreamsId = formInfo.formEvent.streamIds[0];
+  if (newStreamId === previousStreamsId) return;
+  const apiCalls = [{
+    method: 'events.update',
+    params: {
+      id: formInfo.formEvent.id,
+      update: {
+        streamIds: [newStreamId]
+      }
+    }
+  }];
+  const updateEvent = await connection.api(apiCalls);
+  console.log('## event Form status updated', newStatus, updateEvent);
+  formInfo.formEvent.streamIds = [newStreamId]
+}
+
+async function revokeAccess (formDetails) {
+  // revoke access
+  const revokeRes = await connection.api([{
+    "method": "accesses.delete",
+    "params": {
+      "id": formDetails.sharedAccessId
+    }
+  }]);
+  console.log("## revokeAccess res", revokeRes);
+  // -- update access and place in 'demo-dr-forms-rejected'
+  await updateEventFormStatus(formDetails.formInfo, 'rejected');
 }
 
 // ---- Get questionnary details ---- //
 async function getQuestionnaryDetails (formInfo) {
   const details = {
+    formInfo,
     status : 'pending',
   }
 
    //-- check if the access already exists --//
-   const accessesCheckRes = await connection.api([{ method: 'accesses.get', params: {}}]);
+   const accessesCheckRes = await connection.api([{ method: 'accesses.get', params: { includeDeletions: true }}]);
    const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === formInfo.sharingAccessId);
    if (sharedAccess) {
      details.status = 'accepted';
      details.sharedApiEndpoint = sharedAccess.apiEndpoint;
+     details.sharedAccessId = sharedAccess.id;
    }
-
 
    //-- get access permissions request --//
    const drAccessInfo = await formInfo.drConnection.accessInfo();
@@ -165,15 +212,21 @@ async function getQuestionnaryInfo (formEvent) {
   console.log('## Dr Form info', drAccessInfo);
   const questionaryId = drAccessInfo.clientData?.['demo-dr-form']?.questionaryId;
   const drUserId = drAccessInfo.user.username;
+
+  const status = formEvent.streamIds[0];
+
   return {
+    status,
     formApiEndpoint,
     questionaryId,
     drUserId,
     drConnection,
+    created: new Date(drAccessInfo.created),
     formEvent,
     sharingAccessId: `${drUserId}-${questionaryId}`
   }
 }
+
 
 // ---------- connection to the pryv account ------------- //
 

@@ -10,18 +10,22 @@ window.onload = (event) => {
   patientHomeLib.showLoginButton('login-button', stateChange);
 };
 
-async function stateChange(state) {
+function stateChange(state) {
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('card-content').style.visibility = 'visible';
-    const formApiEndpoint = getRequestFrormApiEndPoint();
-    console.log('## formApiEndpoint:', formApiEndpoint);
-    const formsInfo = await patientHomeLib.getForms(formApiEndpoint);
-    showFormList(formsInfo)
+    refresh();
   } else {
     document.getElementById('please-login').style.visibility = 'visible';
     document.getElementById('card-content').style.visibility = 'hidden';
   }
+}
+
+async function refresh() {
+  const formApiEndpoint = getRequestFrormApiEndPoint();
+  console.log('## formApiEndpoint:', formApiEndpoint);
+  const formsInfo = await patientHomeLib.getForms(formApiEndpoint);
+  showFormList(formsInfo)
 }
 
 // ------- Get Dr's info -------- //
@@ -35,13 +39,16 @@ function getRequestFrormApiEndPoint() {
 async function showFormList(formsInfo) {
   console.log('## showFormList', formsInfo);
 
-
   // -- table
   const table = document.getElementById('questionnary-table');
+  const tbody = document.getElementById('questionnary-table').getElementsByTagName('tbody')[0];;
 
+  // clear previous content
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
 
   for (const formInfo of formsInfo) {
-   
     // fill the table row
     const row = table.insertRow(-1);
     const cellQuestionnary = row.insertCell(-1);
@@ -54,7 +61,7 @@ async function showFormList(formsInfo) {
     cellDr.innerHTML = formInfo.drUserId;
 
     const cellStatus = row.insertCell(-1);
-    cellStatus.innerHTML = formInfo.formEvent.streamIds[0];
+    cellStatus.innerHTML = formInfo.status;
   }
 }
 
@@ -87,24 +94,37 @@ async function showFormDetails(formInfo) {
     cellLevel.innerHTML = permission.level;
   }
   // - grant access / open
-  const button = document.getElementById('grant-access-button');
+  const buttonOpen = document.getElementById('grant-access-button');
+  const buttonRevoke = document.getElementById('revoke-access-button');
 
   // -- pass the apiEndpoint to the next page !! Insecure just for demo
   const openHREF = `patient-profile.html?patientApiEndpoint=${patientHomeLib.getPatientApiEndpoint()}&questionaryId=${formInfo.questionaryId}`;
   if (formDetails.status === 'accepted') {
-    button.innerHTML = 'Open';
-    button.onclick = async function () {
+    buttonOpen.innerHTML = 'Open';
+    buttonOpen.onclick = async function () {
       // -- hack publish access anyway (this should be done just once)
       await patientHomeLib.publishAccess(formInfo, formDetails.sharedApiEndpoint);
       document.location.href = openHREF;
     };
+    buttonRevoke.innerHTML = 'Revoke';
+    buttonRevoke.onclick = async function () {
+      const doRevoke = confirm('Revoke ?');
+      if (doRevoke) patientHomeLib.revokeAccess(formDetails);
+      refresh();
+    };
   }
   else {
-    button.innerHTML = 'Grant access and Open';
-    button.onclick = async function () {
+    buttonOpen.innerHTML = 'Grant access and Open';
+    buttonOpen.onclick = async function () {
       await patientHomeLib.grantAccess(formInfo, formDetails);
       document.location.href = openHREF;
     };
+    buttonRevoke.innerHTML = 'Refuse';
+    buttonRevoke.onclick = async function () {
+      const doRevoke = confirm('Refuse ?');
+      if (doRevoke) patientHomeLib.revokeAccess(formDetails);
+      refresh();
+    }
   }
 
   // - json
