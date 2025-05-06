@@ -15,6 +15,7 @@
 <script src="common-data-defs.js"></script>
 <script src="dr-controler.js"></script>
 <script src="dr-lib.js"></script>
+<script src="exportToCSV.js"></script>
 
 <body>
   <div class="container">
@@ -45,6 +46,7 @@
       </div>
       <div class="card-login">
         <h2 class="card-title">Patients</h2>
+        <button id="button-download" class="btn btn-secondary">Download</button>
         <table id='patients-table' class="table">
           <thead>
             <!-- will be filled by setPatientList-->

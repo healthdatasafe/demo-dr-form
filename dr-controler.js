@@ -11,11 +11,16 @@ window.onload = (event) => {
 };
 
 async function stateChange(state) {
+  const questionaryId = 'demo-dr-forms-questionary-x';
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('data-view').style.visibility = 'visible';
     setSharingLink();
-    setPatientList('demo-dr-forms-questionary-x');
+    const {headers, patientsData} = await setPatientList(questionaryId);
+    document.getElementById('button-download').onclick = () => {
+      exportCSVFile(headers, patientsData, 'patients');
+    }
+
   } else {
     document.getElementById('please-login').style.visibility = 'visible';
     document.getElementById('data-view').style.visibility = 'hidden';
@@ -29,6 +34,10 @@ const rowItems = ['name', 'surname', 'nationality'];
 async function setPatientList(questionaryId) {
   const table = document.getElementById('patients-table');
   const fields = drLib.getFields(questionaryId);
+  const headers = {
+    status: 'Status',
+    username: 'Username'
+  }
   // --- headers
   const headerRow = table.insertRow(-1);
   const headerStatusCell = document.createElement("TH");
@@ -39,24 +48,34 @@ async function setPatientList(questionaryId) {
   headerRow.appendChild(headerUserCell);
   for (const field of fields) {
     const headerCell = document.createElement("TH");
+    const formFieldId = field.streamId + ':' + field.eventType;
     headerCell.innerHTML = field.label;
     headerRow.appendChild(headerCell);
+    headers[formFieldId] = field.label;
   }
 
   // --- patients
   const patients = await drLib.getPatientsList(questionaryId, 100);
+  const patientsData = [];
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
     const cellStatus = row.insertCell(-1);
     cellStatus.innerHTML = patient.status;
     const cellUsername = row.insertCell(-1);
     cellUsername.innerHTML = patient.username;
+    const patientData = {
+      status: patient.status,
+      username: patient.username
+    }
     for (const field of fields) {
       const formFieldId = field.streamId + ':' + field.eventType;
       const value = patient.formData[formFieldId]?.value;
       row.insertCell(-1).innerHTML = (value != null) ? value : '';
+      patientData[formFieldId] = value;
     }
+    patientsData.push(patientData);
   }
+  return { headers, patientsData };
 }
 
 /**
