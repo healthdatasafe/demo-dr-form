@@ -25,7 +25,8 @@ async function refresh() {
   const formApiEndpoint = getRequestFrormApiEndPoint();
   console.log('## formApiEndpoint:', formApiEndpoint);
   const formsInfo = await patientHomeLib.getForms(formApiEndpoint);
-  showFormList(formsInfo)
+  showFormList(formsInfo);
+  showFormDetails(null);
 }
 
 // ------- Get Dr's info -------- //
@@ -50,7 +51,7 @@ async function showFormList(formsInfo) {
 
   for (const formInfo of formsInfo) {
     // fill the table row
-    const row = table.insertRow(-1);
+    const row = tbody.insertRow(-1);
     const cellQuestionnary = row.insertCell(-1);
     cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${formInfo.questionaryId}</button>`;
     cellQuestionnary.onclick = function () {
@@ -61,7 +62,7 @@ async function showFormList(formsInfo) {
     cellDr.innerHTML = formInfo.drUserId;
 
     const cellStatus = row.insertCell(-1);
-    cellStatus.innerHTML = formInfo.status;
+    cellStatus.innerHTML = formInfo.statusLabel;
   }
 }
 

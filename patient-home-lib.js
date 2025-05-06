@@ -15,6 +15,11 @@ const AppBaseStreams = {
   rejected: {id: 'demo-dr-forms-rejected', name: 'Demo Dr Forms - Rejected', parentId: 'demo-dr-forms'},
 };
 
+const StatusForStreamId = {
+  [AppBaseStreams.inbox.id]: 'Incoming request',
+  [AppBaseStreams.accepted.id]: 'Accepted',
+  [AppBaseStreams.rejected.id]: 'Rejected',
+}
 
 /**
  * Load app & get the forms
@@ -56,7 +61,6 @@ async function getForms (formApiEndpoint) {
     const formInfo = await getQuestionnaryInfo(formEvent);
     formsInfo.push(formInfo);
   }
-
 
   return formsInfo;
 }
@@ -213,10 +217,10 @@ async function getQuestionnaryInfo (formEvent) {
   const questionaryId = drAccessInfo.clientData?.['demo-dr-form']?.questionaryId;
   const drUserId = drAccessInfo.user.username;
 
-  const status = formEvent.streamIds[0];
+  const statusLabel = StatusForStreamId[formEvent.streamIds[0]];;
 
   return {
-    status,
+    statusLabel,
     formApiEndpoint,
     questionaryId,
     drUserId,
