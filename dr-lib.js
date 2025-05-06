@@ -195,8 +195,7 @@ function dataFieldFromEvent (formProfile, event) {
     return null;
   }
   const field = {
-    formFieldId,
-    key: dataField.dataFieldKey,
+    key: formFieldId,
     label: dataField.label,
     type: dataField.type,
     value: event.content,

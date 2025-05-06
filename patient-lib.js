@@ -35,9 +35,11 @@ async function getFormContent (questionaryId, formKey) {
 
 async function getFormRecurringContent (form) {
   const formReccuringData = structuredClone(form.content);
-  formReccuringData.forEach(field => {
-    field.id = 'field-historical-' + field.dataFieldKey; 
-  });
+
+  for (let i = 0; i < formReccuringData.length; i++) {
+    const field = formReccuringData[i];
+    field.id = form.key + '-' + i;
+  }
   return formReccuringData;
 }
 
@@ -61,7 +63,7 @@ async function getFormPermanentContent (form) {
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
     const field = formPermanentData[i];
-    field.id = 'field-profile-' + field.dataFieldKey;
+    field.id = form.key + '-' + i;
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
       const event = e.events[0];

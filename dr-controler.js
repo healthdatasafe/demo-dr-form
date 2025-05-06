@@ -52,7 +52,8 @@ async function setPatientList(questionaryId) {
     const cellUsername = row.insertCell(-1);
     cellUsername.innerHTML = patient.username;
     for (const field of fields) {
-      const value = patient.formData[field.dataFieldKey]?.value;
+      const formFieldId = field.streamId + ':' + field.eventType;
+      const value = patient.formData[formFieldId]?.value;
       row.insertCell(-1).innerHTML = (value != null) ? value : '';
     }
   }

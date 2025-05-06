@@ -37,21 +37,18 @@ const formProfileContent = [
     eventType: 'contact/name',
     type: 'text',
     label: 'Name',
-    dataFieldKey: 'name',
   },
   {
     streamId: 'profile-name',
     eventType: 'contact/surname',
     type: 'text',
     label: 'Surname',
-    dataFieldKey: 'surname',
   },
   {
     streamId: 'profile-nationality',
     eventType: 'contact/nationality',
     type: 'text',
     label: 'Nationality',
-    dataFieldKey: 'nationality',
   },
   {
     streamId: 'profile-sex',
@@ -59,35 +56,30 @@ const formProfileContent = [
     type: 'select',
     options: [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female'}],
     label: 'Sex',
-    dataFieldKey: 'sex',
   },
   {
     streamId: 'profile-date-of-birth',
     eventType: 'date/iso-8601',
     type: 'date',
     label: 'Date of Birth',
-    dataFieldKey: 'date-of-birth',
   },
   {
     streamId: 'family-children',
     eventType: 'count/generic',
     type: 'number',
     label: 'Nb of children',
-    dataFieldKey: 'children-count',
   },
   {
     streamId: 'fertility-miscarriages',
     eventType: 'count/generic',
     type: 'number',
     label: 'Nb of miscarriages',
-    dataFieldKey: 'miscarriages-count',
   },
   {
     streamId: 'fertility-cycles-charted-extimation',
     eventType: 'count/generic',
     type: 'number',
     label: 'Nb of charted cycles',
-    dataFieldKey: 'charted-cycles-count',
   }
 ];
 
@@ -97,7 +89,6 @@ const formHistoricalContent = [
     streamId: 'ttc-tta',
     eventType: 'fertility-intention/ttc-tta',
     label: 'Trying to conceive / Avoiding pregnancy',
-    dataFieldKey: 'ttc-tta',
     type: 'select',
     options: [
       {
@@ -141,6 +132,12 @@ const formHistoricalContent = [
         label: 'TTC - “ Seriously TTC” Intentional intercourse every cycle. Would pursue any/ALL fertility treatments or procedures if needed.'
       }
     ]
+  },
+  {
+    streamId: 'body-weight',
+    eventType: 'mass/kg',
+    type: 'number',
+    label: 'Body Weight (kg)',
   }
 ]
 
