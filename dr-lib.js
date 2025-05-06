@@ -77,8 +77,11 @@ async function getPatientsList (questionnaryId, limit = 100) {
   }
 
   // -- get the patients
-  for (const patientEvent of Object.values(uniques)) {
-    const patient = await getPatientDetails(questionnaryId, patientEvent);
+  const patientPromises = Object.values(uniques).map((patientEvent) => getPatientDetails(questionnaryId, patientEvent));
+  const patientsResults = await Promise.all(patientPromises);
+
+  const patients = {};
+  for (const patient of patientsResults) {
     if (patient) {
       patients[patient.apiEndpoint] = patient;
       console.log('## Patient details', patient);
