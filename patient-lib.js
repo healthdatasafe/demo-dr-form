@@ -1,11 +1,14 @@
 import { dataDefs } from './common-data-defs.js';
+import { CookieUtils } from './CookieUtils.js';
 
 export const patientLib = {
   handleFormSubmit,
   getFormTitle,
   getFormContent,
   connect,
-  getNavigationQueryParams
+  getNavigationQueryParams,
+  navSetData,
+  navGetData
 }
 
 
@@ -22,6 +25,19 @@ async function connect (apiEndpoint, questionaryId) {
 function getNavigationQueryParams() {
   return `?patientApiEndpoint=${connection.apiEndpoint}&questionaryId=${_questionaryId}`
 }
+
+// --------------- navigation - to be replaced if built-in framework ------- //
+
+const COOKIE_KEY = 'hds-demo-dr-form';
+function navSetData(data) {
+  if (data == null) return Pryv.Browser.CookieUtils.del(COOKIE_KEY);
+  CookieUtils.set(COOKIE_KEY, data, 365, '/');
+}
+
+function navGetData() {
+  return CookieUtils.get(COOKIE_KEY);
+}
+
 
 // ---------------- form content ---------------- //
 

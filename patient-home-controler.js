@@ -74,6 +74,8 @@ async function showFormDetails(formInfo) {
   const show = !!formInfo;
   document.getElementById('card-questionnary-details-nothing').style.display = show ? 'none' : 'block';
   document.getElementById('card-questionnary-details-something').style.display= show ? 'block' : 'none';
+  // clear navData
+  patientLib.navSetData(null);
   if (!show) return;
   const formDetails = await patientHomeLib.getQuestionnaryDetails(formInfo);
   console.log('## showFormDetails', formDetails);
@@ -102,13 +104,20 @@ async function showFormDetails(formInfo) {
   const buttonRevoke = document.getElementById('revoke-access-button');
 
   // -- pass the apiEndpoint to the next page !! Insecure just for demo
-  const openHREF = `patient-profile.html?patientApiEndpoint=${patientHomeLib.getPatientApiEndpoint()}&questionaryId=${formInfo.questionaryId}`;
+  const navData = {
+    patientApiEndpoint: patientHomeLib.getPatientApiEndpoint(),
+    questionaryId: formInfo.questionaryId
+  }
+  patientLib.navSetData(navData);
+  console.log("## nav set data", patientLib.navGetData())
+
   if (formDetails.status === 'accepted') {
     buttonOpen.innerHTML = 'Open';
     buttonOpen.onclick = async function () {
       // -- hack publish access anyway (this should be done just once)
       await patientHomeLib.publishAccess(formInfo, formDetails.sharedApiEndpoint);
-      document.location.href = openHREF;
+      patientLib.navSetData()
+      document.location.href = 'patient-profile.html';
     };
     buttonRevoke.innerHTML = 'Revoke';
     buttonRevoke.onclick = async function () {
@@ -121,7 +130,7 @@ async function showFormDetails(formInfo) {
     buttonOpen.innerHTML = 'Grant access and Open';
     buttonOpen.onclick = async function () {
       await patientHomeLib.grantAccess(formInfo, formDetails);
-      document.location.href = openHREF;
+      document.location.href = 'patient-profile.html';
     };
     buttonRevoke.innerHTML = 'Refuse';
     buttonRevoke.onclick = async function () {

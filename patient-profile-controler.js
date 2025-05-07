@@ -7,7 +7,9 @@ import { patientLib } from './patient-lib.js';
  */
 
 window.onload = async (event) => {
-  const { patientApiEndpoint, questionaryId } = getPatientApiEndpointAndFormId();
+  const navData = patientLib.navGetData();
+  console.log('## navData', navData);
+  const { patientApiEndpoint, questionaryId } = navData;
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await patientLib.connect(patientApiEndpoint, questionaryId);
   // - form title
@@ -15,7 +17,7 @@ window.onload = async (event) => {
   formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
   // -- navigation
   document.getElementById('nav-history').onclick = () => {
-    document.location.href = 'patient-history.html' + patientLib.getNavigationQueryParams();
+    document.location.href = 'patient-history.html';
   };
   // -- content
   updateFormContent(questionaryId, 'profile');
@@ -23,23 +25,6 @@ window.onload = async (event) => {
     submitForm(questionaryId, 'profile'); 
   });
   
-}
-
-
-// ------- Get Questionnary and endpoint info -------- //
-function getPatientApiEndpointAndFormId() {
-  const params = new URLSearchParams(document.location.search);
-  const patientApiEndpoint = params.get('patientApiEndpoint');
-  const questionaryId = params.get('questionaryId');
-  if (!patientApiEndpoint) {
-    alert('No patientApiEndpoint found in the URL');
-    return;
-  }
-  if (!questionaryId) {
-    alert('No questionaryId found in the URL');
-    return;
-  }
-  return { patientApiEndpoint, questionaryId };
 }
 
 
