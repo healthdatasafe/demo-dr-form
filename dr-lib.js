@@ -6,7 +6,8 @@ export const drLib = {
   showLoginButton,
   getSharingToken,
   getPatientsList,
-  getFields
+  getFields,
+  getQuestionnaires
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
@@ -47,6 +48,11 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
       stateChangeCallBack('loggedOUT');
     }
   }
+}
+
+// -------- Questionnaties ----- 
+async function getQuestionnaires() {
+  return dataDefs.questionnaires;
 }
 
 // -------- Fetch patient list --------
@@ -207,7 +213,6 @@ function dataFieldFromEvent (formProfile, event) {
     event: event
   };
   if (dataField.type === 'date') {
-    // convert the date to a Date object
     const date = new Date(event.content);
     if (!isNaN(date)) {
       field.value = date.toISOString().split('T')[0]; // format YYYY-MM-DD
@@ -234,14 +239,23 @@ async function initDrAccount (connection) {
  * Initialize or get the sharing token for patients
  * @returns 
  */
-async function getSharingToken () {
+async function getSharingToken (questionaryId) {
   const accessesCheckRes = await drConnection.api([{ method: 'accesses.get', params: {}}]);
   const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === 'demo-dr-form-shared');
   if (sharedAccess) {
     console.log('## Dr account already has a shared access');
     return sharedAccess.apiEndpoint;
   }
-  const accessRes = await drConnection.api([{ 
+  
+
+  const resultStreamAndAccess = await drConnection.api([{ 
+    method: 'streams.create', // make sure streamId with questionnaryId exists 
+    params: {
+      id: 'demo-dr-forms-questionary-x',
+      name: 'Questionnary x',
+      parentId: 'demo-dr-forms'
+    }
+  }, { // create access 
     method: 'accesses.create', 
     params: {
       name: 'demo-dr-form-shared',
@@ -251,7 +265,7 @@ async function getSharingToken () {
           level: 'create-only'
         },
         {
-          streamId: 'demo-dr-forms-questionary-x',
+          streamId: questionaryId,
           level: 'read'
         },
         { // for "publicly shared access" always forbid the selfRevoke feature
@@ -260,13 +274,13 @@ async function getSharingToken () {
         }],
       clientData: {
         'demo-dr-form': {
-          questionaryId: 'demo-dr-forms-questionary-x'
+          questionaryId
         }
       }
     }
   }]);
-  console.log('## Dr account shared access created', accessRes);
-  return accessRes[0].access.apiEndpoint;
+  console.log('## Dr account shared access created', resultStreamAndAccess);
+  return resultStreamAndAccess[1].access.apiEndpoint;
 }
 
 
@@ -316,13 +330,6 @@ async function initStreams () {
       params: {
         id: 'demo-dr-forms',
         name: 'Demo Dr Forms'
-      }
-    },
-    { 
-      method: 'streams.create',
-      params: {
-        id: 'demo-dr-forms-questionary-x',
-        name: 'Questionnary x'
       }
     }
   ];

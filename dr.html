@@ -36,22 +36,24 @@
       </div>
     </div>
     <div class="card" id="data-view" style="visibility: hidden;">
-      <div class="card-login">
-        <h2 class="card-title">Sharing link</h2>
-        <span id="sharing-link">
-          
-      </div>
-      <div class="card-login">
-        <h2 class="card-title">Patients</h2>
-        <button id="button-download" class="btn btn-secondary">Download</button>
-        <table id='patients-table' class="table">
-          <thead>
-            <!-- will be filled by setPatientList-->
-          </thead>
-          <tbody>
-            <!-- will be filled by setPatientList-->
-          </tbody>
-        </table>
+      Select a questionnary: <select id="select-questionnary" class="form-control"></select>
+      <div id="questionnary-view">
+        <div class="card">
+          <h2 class="card-title">Sharing link</h2>
+          <span id="sharing-link">
+        </div>
+        <div class="card">
+          <h2 class="card-title">Patients</h2>
+          <button id="button-download" class="btn btn-secondary">Download</button>
+          <table id='patients-table' class="table">
+            <thead>
+              <!-- will be filled by setPatientList-->
+            </thead>
+            <tbody>
+              <!-- will be filled by setPatientList-->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
