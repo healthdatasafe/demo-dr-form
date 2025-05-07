@@ -271,7 +271,7 @@ async function getSharingToken () {
 async function initStreams () {
   // check if the account is already initialized
   const resStreams = await drConnection.api([{ method: 'streams.get', params: { parentId: 'patients' } }]);
-  if (resStreams[0].streams.length > 0) {
+  if (resStreams[0]?.streams?.length > 0) {
     console.log('## Dr account streams already initialized');
     return;
   }
