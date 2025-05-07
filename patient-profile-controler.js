@@ -10,6 +10,9 @@ window.onload = async (event) => {
   const { patientApiEndpoint, questionaryId } = getPatientApiEndpointAndFormId();
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await patientLib.connect(patientApiEndpoint, questionaryId);
+  // - form title
+  const formTitle = document.getElementById('card-questionnary-details-title');
+  formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
   // -- navigation
   document.getElementById('nav-history').onclick = () => {
     document.location.href = 'patient-history.html' + patientLib.getNavigationQueryParams();

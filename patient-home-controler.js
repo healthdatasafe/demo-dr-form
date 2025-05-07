@@ -44,7 +44,6 @@ async function showFormList(formsInfo) {
   console.log('## showFormList', formsInfo);
 
   // -- table
-  const table = document.getElementById('questionnary-table');
   const tbody = document.getElementById('questionnary-table').getElementsByTagName('tbody')[0];;
 
   // clear previous content
