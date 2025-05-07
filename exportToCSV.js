@@ -16,7 +16,7 @@ function convertToCSV(objArray) {
   return str;
 }
 
-function exportCSVFile(headers, items, fileTitle) {
+export function exportCSVFile(headers, items, fileTitle) {
   if (headers) {
       items.unshift(headers);
   }
@@ -24,7 +24,7 @@ function exportCSVFile(headers, items, fileTitle) {
   // Convert Object to JSON
   var jsonObject = JSON.stringify(items);
 
-  var csv = this.convertToCSV(jsonObject);
+  var csv = convertToCSV(jsonObject);
 
   var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
 

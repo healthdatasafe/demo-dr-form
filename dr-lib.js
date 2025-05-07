@@ -1,6 +1,8 @@
+import { dataDefs } from './common-data-defs.js';
+
 let drConnection = null;
 
-const drLib = {
+export const drLib = {
   showLoginButton,
   getSharingToken,
   getPatientsList,

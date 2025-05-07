@@ -1,9 +1,13 @@
-const patientLib = {
+import { dataDefs } from './common-data-defs.js';
+
+export const patientLib = {
   handleFormSubmit,
+  getFormTitle,
   getFormContent,
   connect,
   getNavigationQueryParams
 }
+
 
 let connection = null;
 let _questionaryId = null;
@@ -20,6 +24,10 @@ function getNavigationQueryParams() {
 }
 
 // ---------------- form content ---------------- //
+
+function getFormTitle (questionaryId) {
+  return dataDefs.questionnaires[questionaryId].title;
+}
 
 async function getFormContent (questionaryId, formKey) {
   const form = dataDefs.questionnaires[questionaryId].forms[formKey];

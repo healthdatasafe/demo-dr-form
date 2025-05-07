@@ -141,8 +141,9 @@ const formHistoricalContent = [
   }
 ]
 
-questionnaires = {
+const questionnaires = {
   'demo-dr-forms-questionary-x': {
+    title: 'Demo with Profile and TTC-TTA',
     permissions: patientBasePermissions.map(perm => ({
       streamId: perm.id,
       level: 'read',
@@ -166,6 +167,6 @@ questionnaires = {
   }
 }
 
-const dataDefs = {
+export const dataDefs = {
   questionnaires
 };

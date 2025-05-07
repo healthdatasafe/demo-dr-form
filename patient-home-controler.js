@@ -1,3 +1,6 @@
+import { patientLib } from './patient-lib.js';
+import { patientHomeLib } from './patient-home-lib.js';
+
 /**
  * UI management code. 
  * Relies on patientLib for API calls and data management
@@ -53,7 +56,8 @@ async function showFormList(formsInfo) {
     // fill the table row
     const row = tbody.insertRow(-1);
     const cellQuestionnary = row.insertCell(-1);
-    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${formInfo.questionaryId}</button>`;
+    const formTitle = patientLib.getFormTitle(formInfo.questionaryId);
+    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${formTitle}</button>`;
     cellQuestionnary.onclick = function () {
       showFormDetails(formInfo);
     };
@@ -77,7 +81,7 @@ async function showFormDetails(formInfo) {
 
   // - form title
   const formTitle = document.getElementById('card-questionnary-details-title');
-  formTitle.innerHTML = formInfo.questionaryId;
+  formTitle.innerHTML = patientLib.getFormTitle(formInfo.questionaryId);
 
   // - permissions
   const tbody = document.getElementById('access-request').getElementsByTagName('tbody')[0];;

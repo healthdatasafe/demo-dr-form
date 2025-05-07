@@ -1,4 +1,3 @@
-import { patientLib } from './patient-lib.js';
 /**
  * UI management code. 
  * Relies on patientLib for API calls and data management

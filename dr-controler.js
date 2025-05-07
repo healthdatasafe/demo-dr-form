@@ -1,3 +1,6 @@
+import { drLib } from './dr-lib.js';
+import { exportCSVFile } from './exportToCSV.js';
+
 /**
  * UI management code. 
  * Relies on drLib for API calls and data management

@@ -1,4 +1,6 @@
-const patientHomeLib = {
+import { dataDefs } from './common-data-defs.js';
+
+export const patientHomeLib = {
   getForms,
   getQuestionnaryDetails,
   grantAccess,
