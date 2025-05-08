@@ -1,5 +1,6 @@
-import { dataDefs } from './common-data-defs.js';
+import { dataDefs } from "./common-data-defs.js";
 
+const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-patient'
 let drConnection = null;
 
 export const drLib = {
@@ -7,50 +8,54 @@ export const drLib = {
   getSharingToken,
   getPatientsList,
   getFields,
-  getQuestionnaires
-}
+  getQuestionnaires,
+};
 
-function showLoginButton (loginSpanId, stateChangeCallBack) {
-
+function showLoginButton(loginSpanId, stateChangeCallBack) {
   const authSettings = {
     spanButtonID: loginSpanId, // div id the DOM that will be replaced by the Service specific button
     onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
-    authRequest: { // See: https://api.pryv.com/reference/#auth-request
-      requestingAppId: 'demo-dr-form-dr', // to customize for your own app
-      requestedPermissions: [ 
+    authRequest: {
+      // See: https://api.pryv.com/reference/#auth-request
+      requestingAppId: dataDefs.appId, // to customize for your own app
+      requestedPermissions: [
         {
-          streamId: '*',
-          level: 'manage' 
-        }
+          streamId: appDrStreamId,
+          defaultName: "Demo Forms drManagement",
+          level: "manage",
+        },
       ],
       clientData: {
-        'app-web-auth:description': {
-          'type': 'note/txt',
-          'content': 'This app allows to send invitation links to patients and visualize and export answers.'
-        } 
+        "app-web-auth:description": {
+          type: "note/txt",
+          content:
+            "This app allows to send invitation links to patients and visualize and export answers.",
+        },
       },
-    }
+    },
   };
 
   // following the APP GUIDELINES: https://api.pryv.com/guides/app-guidelines/
-  const serviceInfoUrl = Pryv.Browser.serviceInfoFromUrl() || 'https://demo.datasafe.dev/reg/service/info';
+  const serviceInfoUrl =
+    Pryv.Browser.serviceInfoFromUrl() ||
+    "https://demo.datasafe.dev/reg/service/info";
   Pryv.Browser.setupAuth(authSettings, serviceInfoUrl);
 
-  async function pryvAuthStateChange(state) { // called each time the authentication state changes
-    console.log('##pryvAuthStateChange', state);
+  async function pryvAuthStateChange(state) {
+    // called each time the authentication state changes
+    console.log("##pryvAuthStateChange", state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
       drConnection = new Pryv.Connection(state.apiEndpoint);
-      await initDrAccount(drConnection);
-      stateChangeCallBack('loggedIN');
+      stateChangeCallBack("loggedIN");
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
       drConnection = null;
-      stateChangeCallBack('loggedOUT');
+      stateChangeCallBack("loggedOUT");
     }
   }
 }
 
-// -------- Questionnaties ----- 
+// -------- Questionnaties -----
 async function getQuestionnaires() {
   return dataDefs.questionnaires;
 }
@@ -59,103 +64,122 @@ async function getQuestionnaires() {
 
 const patients = {};
 
-async function getPatientsList (questionnaryId, limit = 100) {
-  const res = await drConnection.api([{ method: 'events.get', params: { types: ['credentials/pryv-api-endpoint'], limit } }]);
+async function getPatientsList(questionnaryId, limit = 100) {
+  const qStreams = questionnaryStreams(questionnaryId);
+  const res = await drConnection.api([
+    {
+      method: "events.get",
+      params: {
+        types: ["credentials/pryv-api-endpoint"],
+        limit,
+        streams: [qStreams.questionnary.id],
+      },
+    },
+  ]);
   const patientApiEndpointEvents = res[0].events;
 
   // -- remove duplicates
   const duplicateEventId = [];
   const uniques = {};
   for (const patientEvent of patientApiEndpointEvents) {
-    if (patientEvent.type === 'credentials/pryv-api-endpoint') {
+    if (patientEvent.type === "credentials/pryv-api-endpoint") {
       const apiEndpoint = patientEvent.content;
       if (uniques[apiEndpoint]) {
         // -- duplicate
         duplicateEventId.push(patientEvent.id);
-        console.log('## Duplicate patient event', patientEvent);
+        console.log("## Duplicate patient event", patientEvent);
       } else {
         uniques[apiEndpoint] = patientEvent;
       }
     }
   }
   if (duplicateEventId.length > 0) {
-    const removeDuplicatesApiCalls = duplicateEventId.map(id => ({ method: 'events.delete', params: { id} }));
+    const removeDuplicatesApiCalls = duplicateEventId.map((id) => ({
+      method: "events.delete",
+      params: { id },
+    }));
     const removeDuplicates = await drConnection.api(removeDuplicatesApiCalls);
-    console.log('## Removed duplicates', removeDuplicates);
+    console.log("## Removed duplicates", removeDuplicates);
   }
 
   // -- get the patients
-  const patientPromises = Object.values(uniques).map((patientEvent) => getPatientDetails(questionnaryId, patientEvent));
+  const patientPromises = Object.values(uniques).map((patientEvent) =>
+    getPatientDetails(questionnaryId, patientEvent)
+  );
   const patientsResults = await Promise.all(patientPromises);
 
   const patients = {};
   for (const patient of patientsResults) {
     if (patient) {
       patients[patient.apiEndpoint] = patient;
-      console.log('## Patient details', patient);
+      console.log("## Patient details", patient);
     }
   }
 
-  console.log('## Patients list', patients);
+  console.log("## Patients list", patients);
   return patients;
 }
 
 /**
  * get patients details
  */
-async function getPatientDetails (questionnaryId, patientEvent) {
+async function getPatientDetails(questionnaryId, patientEvent) {
   // -- check if the event is a patient event
-  if (patientEvent.type !== 'credentials/pryv-api-endpoint') return null;
+  const qStreams = questionnaryStreams(questionnaryId);
+  if (patientEvent.type !== "credentials/pryv-api-endpoint") return null;
   const patient = {
-    status: 'active',
+    status: "active",
     apiEndpoint: patientEvent.content,
-    formData: {}
+    formData: {},
   };
   const patientConnection = new Pryv.Connection(patient.apiEndpoint);
 
-  // -- get patient data 
-  if (! patientEvent.streamIds.includes('patients-revoked')) {
+  // -- get patient data
+  if (!patientEvent.streamIds.includes(qStreams.revoked)) {
     // -- get patient info
     try {
       const patientInfo = await patientConnection.accessInfo();
       patient.username = patientInfo.user.username;
     } catch (e) {
-      console.error('## Error getting patient info: ' + patient.apiEndpoint, e);
+      console.error("## Error getting patient info: " + patient.apiEndpoint, e);
       // -- mark as revoked
-      const revokeRequest = await drConnection.api([{
-        method: 'events.update',
-        params: {
-          id: patientEvent.id,
-          update: {
-            streamIds: ['patients-revoked']
-          }
-        }}]);
-      console.log('## Patient maked as revoked', revokeRequest);
-      patientEvent.streamIds = ['patients-revoked'];
+      const revokeRequest = await drConnection.api([
+        {
+          method: "events.update",
+          params: {
+            id: patientEvent.id,
+            update: {
+              streamIds: [qStreams.revoked],
+            },
+          },
+        },
+      ]);
+      console.log("## Patient marked as revoked", revokeRequest);
+      patientEvent.streamIds = [qStreams.revoked];
     }
   }
 
   // -- marked revoked
-  if (patientEvent.streamIds.includes('patients-revoked')) {
-    patient.status = 'revoked';
-    const usernameFromApiEndpoint = patientEvent.content.split('/')[3];
-    patient.username = patientEvent.clientData?.username || usernameFromApiEndpoint;
+  if (patientEvent.streamIds.includes(qStreams.revoked)) {
+    patient.status = "revoked";
+    const usernameFromApiEndpoint = patientEvent.content.split("/")[3];
+    patient.username =
+      patientEvent.clientData?.username || usernameFromApiEndpoint;
     return patient;
-   };
-  
+  }
 
   // -- get data
   // get profile form data
   const formProfile = dataDefs.questionnaires[questionnaryId].forms.profile;
 
   // get the last value of each field
-  const apiCalls = formProfile.content.map(field => ({
-    method: 'events.get',
+  const apiCalls = formProfile.content.map((field) => ({
+    method: "events.get",
     params: {
       streams: [field.streamId],
       types: [field.eventType],
       limit: 1,
-    }
+    },
   }));
 
   const profileEventsResults = await patientConnection.api(apiCalls);
@@ -168,18 +192,15 @@ async function getPatientDetails (questionnaryId, patientEvent) {
   return patient;
 }
 
-
-
-
 /**
  * get the list of rows for the table
  */
-function getFields (questionaryId) {
+function getFields(questionaryId) {
   return dataDefs.questionnaires[questionaryId].forms.profile.content;
-};
+}
 
 const dataFieldsCaches = {};
-function initFieldsCache (formProfile) {
+function initFieldsCache(formProfile) {
   if (dataFieldsCaches[formProfile.key] == null) {
     dataFieldsCaches[formProfile.key] = {};
   }
@@ -187,7 +208,7 @@ function initFieldsCache (formProfile) {
 
   if (Object.keys(dataFieldsCache).length !== 0) return dataFieldsCache;
   for (const formField of formProfile.content) {
-    const dataFieldId = formField.streamId + ':' + formField.eventType;
+    const dataFieldId = formField.streamId + ":" + formField.eventType;
     dataFieldsCache[dataFieldId] = formField;
   }
   return dataFieldsCache;
@@ -195,14 +216,14 @@ function initFieldsCache (formProfile) {
 
 /**
  * Link an event to a data field from form
- * @param {*} event 
+ * @param {*} event
  */
-function dataFieldFromEvent (formProfile, event) {
+function dataFieldFromEvent(formProfile, event) {
   const dataFieldsCache = initFieldsCache(formProfile);
-  const formFieldId = event.streamId + ':' + event.type;
+  const formFieldId = event.streamId + ":" + event.type;
   const dataField = dataFieldsCache[formFieldId];
   if (!dataField) {
-    console.error('## Data field not found for event', event);
+    console.error("## Data field not found for event", event);
     return null;
   }
   const field = {
@@ -210,129 +231,110 @@ function dataFieldFromEvent (formProfile, event) {
     label: dataField.label,
     type: dataField.type,
     value: event.content,
-    event: event
+    event: event,
   };
-  if (dataField.type === 'date') {
+  if (dataField.type === "date") {
     const date = new Date(event.content);
     if (!isNaN(date)) {
-      field.value = date.toISOString().split('T')[0]; // format YYYY-MM-DD
+      field.value = date.toISOString().split("T")[0]; // format YYYY-MM-DD
     } else {
-      console.error('## Error parsing date', event.content);
-      field.value = '';
+      console.error("## Error parsing date", event.content);
+      field.value = "";
     }
   }
   return field;
 }
 
-// -------- init functions --------
-
-/**
- * Initialize the doctor account
- * @param {*} connection 
- */
-async function initDrAccount (connection) {
-  await initStreams(connection);
-  console.log('## Dr account initialized')
+// -------- questionnary streams ---- //
+function questionnaryStreams(questionaryId) {
+  const questionnaryStreamId = appDrStreamId + "-" + questionaryId;
+  return {
+    questionnary: { id: questionnaryStreamId, name: questionaryId },
+    inbox: {
+      id: questionnaryStreamId + "-inbox",
+      name: questionaryId + " Inbox",
+    },
+    revoked: {
+      id: questionnaryStreamId + "-revoked",
+      name: questionaryId + " Revoked",
+    },
+  };
 }
+
+// -------- init functions -------- //
 
 /**
  * Initialize or get the sharing token for patients
- * @returns 
+ * @returns
  */
-async function getSharingToken (questionaryId) {
-  const accessesCheckRes = await drConnection.api([{ method: 'accesses.get', params: {}}]);
-  const sharedAccess = accessesCheckRes[0].accesses.find(access => access.name === 'demo-dr-form-shared');
+async function getSharingToken(questionaryId) {
+  const sharedAccessId = dataDefs.appId + "-" + questionaryId;
+  const accessesCheckRes = await drConnection.api([
+    { method: "accesses.get", params: {} },
+  ]);
+  const sharedAccess = accessesCheckRes[0].accesses.find(
+    (access) => access.name === sharedAccessId
+  );
+
+  const qStreams = questionnaryStreams(questionaryId);
+
   if (sharedAccess) {
-    console.log('## Dr account already has a shared access');
+    console.log("## Dr account already has a shared access");
     return sharedAccess.apiEndpoint;
   }
-  
+  // make sure streams for questionary Exists
 
-  const resultStreamAndAccess = await drConnection.api([{ 
-    method: 'streams.create', // make sure streamId with questionnaryId exists 
-    params: {
-      id: 'demo-dr-forms-questionary-x',
-      name: 'Questionnary x',
-      parentId: 'demo-dr-forms'
-    }
-  }, { // create access 
-    method: 'accesses.create', 
-    params: {
-      name: 'demo-dr-form-shared',
-      type: 'shared',
-      permissions: [{
-          streamId: 'patients-inbox',
-          level: 'create-only'
-        },
-        {
-          streamId: questionaryId,
-          level: 'read'
-        },
-        { // for "publicly shared access" always forbid the selfRevoke feature
-          feature: "selfRevoke",
-          setting: "forbidden"
-        }],
-      clientData: {
-        'demo-dr-form': {
-          questionaryId
+  const resultStreamAndAccess = await drConnection.api([
+    {
+      method: "streams.create", // make sure streamId with sharedAccessId exists
+      params: {
+        id: qStreams.questionnary.id,
+        name: qStreams.questionnary.name,
+        parentId: appDrStreamId,
+      }
+    },
+    {
+      method: "streams.create",
+      params: {
+        id: qStreams.inbox.id,
+        name: qStreams.inbox.name,
+        parentId: qStreams.questionnary.id,
+      }
+    },
+    {
+      method: "streams.create",
+      params: {
+        id: qStreams.revoked.id,
+        name: qStreams.revoked.name,
+        parentId: qStreams.questionnary.id,
+      }
+    },
+    {
+      // create access
+      method: "accesses.create",
+      params: {
+        name: sharedAccessId,
+        type: "shared",
+        permissions: [
+          {
+            streamId: qStreams.inbox.id,
+            level: "create-only",
+          },
+          {
+            // for "publicly shared access" always forbid the selfRevoke feature
+            feature: "selfRevoke",
+            setting: "forbidden",
+          },
+        ],
+        clientData: {
+          [dataDefs.appId]: {
+            questionaryId,
+            inboxStreamId: qStreams.inbox.id,
+          }
         }
       }
-    }
-  }]);
-  console.log('## Dr account shared access created', resultStreamAndAccess);
-  return resultStreamAndAccess[1].access.apiEndpoint;
-}
-
-
-async function initStreams () {
-  // check if the account is already initialized
-  const resStreams = await drConnection.api([{ method: 'streams.get', params: { parentId: 'patients' } }]);
-  if (resStreams[0]?.streams?.length > 0) {
-    console.log('## Dr account streams already initialized');
-    return;
-  }
-
-  // create stream structure (even if already exists)
-  const apiCalls = [
-    { 
-      method: 'streams.create',
-      params: {
-        id: 'patients',
-        name: 'Patients'
-      }
     },
-    { 
-      method: 'streams.create',
-      params: {
-        id: 'patients-inbox',
-        name: 'Patients Inbox',
-        parentId: 'patients'
-      }
-    },
-    { 
-      method: 'streams.create',
-      params: {
-        id: 'patients-validated',
-        name: 'Patients Validted',
-        parentId: 'patients'
-      }
-    },
-    { 
-      method: 'streams.create',
-      params: {
-        id: 'patients-revoked',
-        name: 'Patients Revoked',
-        parentId: 'patients'
-      }
-    },
-    { 
-      method: 'streams.create',
-      params: {
-        id: 'demo-dr-forms',
-        name: 'Demo Dr Forms'
-      }
-    }
-  ];
-  const result = await drConnection.api(apiCalls);
-  console.log('## Dr account streams created', result);
+  ]);
+  console.log("## Dr account shared access created", resultStreamAndAccess);
+  return resultStreamAndAccess[3].access.apiEndpoint;
 }

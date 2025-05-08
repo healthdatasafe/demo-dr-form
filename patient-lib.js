@@ -28,9 +28,9 @@ function getNavigationQueryParams() {
 
 // --------------- navigation - to be replaced if built-in framework ------- //
 
-const COOKIE_KEY = 'hds-demo-dr-form';
+const COOKIE_KEY = 'hds-' + dataDefs.appId;
 function navSetData(data) {
-  if (data == null) return Pryv.Browser.CookieUtils.del(COOKIE_KEY);
+  if (data == null) return CookieUtils.del(COOKIE_KEY, '/');
   CookieUtils.set(COOKIE_KEY, data, 365, '/');
 }
 

@@ -15,23 +15,33 @@ const patientBaseStreams = [
   {id: 'fertility-miscarriages', name: 'Miscarriages', parentId: 'fertility'},
   {id: 'fertility-traings', name: 'Trainings', parentId: 'fertility'},
   {id: 'fertility-cycles', name: 'Cycles', parentId: 'fertility'},
-  {id: 'fertility-cycles-charted-extimation', name: 'Cycles charted estimation', parentId: 'fertility'},
+  {id: 'fertility-cycles-charted-extimation', name: 'Cycles charted estimation', parentId: 'fertility-cycles'},
   {id: 'fertility-ttc-tta', name: 'Trying to conceive / Avoiding pregnancy', parentId: 'fertility'},
   // body
   {id: 'body', name: 'Body'},
   {id: 'body-height', name: 'Body Height', parentId: 'body'},
   {id: 'body-weight', name: 'Body Weight', parentId: 'body'},
+  // vulva
+  {id: 'body-vulva', name: 'Vulva', parentId: 'body'},
+  {id: 'body-vulva-wetness', name: 'Vulva Wetness', parentId: 'body-vulva'},
+  {id: 'body-vulva-wetness-feeling', name: 'Vulva Wetness Feeling', parentId: 'body-vulva-wetness'}
 ];
 
-const patientBasePermissions = [
+const patientBasePermissionsX = [
   {id: 'profile', name: 'Profile'},
   {id: 'family', name: 'Family'},
   {id: 'fertility', name: 'Fertility'},
   {id: 'body-height', name: 'Body height'},
   {id: 'body-weight', name: 'Body weight'},
+];
+
+const patientBasePermissionsB = [
+  {id: 'profile', name: 'Profile'},
+  {id: 'fertility-cycles', name: 'Fertility Cycles'},
+  {id: 'body-vulva', name: 'Vulva'}
 ]
 
-const formProfileContent = [
+const formProfileContentBase = [
   {
     streamId: 'profile-name',
     eventType: 'contact/name',
@@ -45,6 +55,15 @@ const formProfileContent = [
     label: 'Surname',
   },
   {
+    streamId: 'profile-date-of-birth',
+    eventType: 'date/iso-8601',
+    type: 'date',
+    label: 'Date of Birth',
+  }];
+
+const formProfileContentX = [
+  ...formProfileContentBase,
+  {
     streamId: 'profile-nationality',
     eventType: 'contact/nationality',
     type: 'text',
@@ -56,12 +75,6 @@ const formProfileContent = [
     type: 'select',
     options: [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female'}],
     label: 'Sex',
-  },
-  {
-    streamId: 'profile-date-of-birth',
-    eventType: 'date/iso-8601',
-    type: 'date',
-    label: 'Date of Birth',
   },
   {
     streamId: 'family-children',
@@ -83,8 +96,7 @@ const formProfileContent = [
   }
 ];
 
-// -- fields lists -- //
-const formHistoricalContent = [
+const formHistoricalContentX = [
   {
     streamId: 'ttc-tta',
     eventType: 'fertility-intention/ttc-tta',
@@ -141,10 +153,16 @@ const formHistoricalContent = [
   }
 ]
 
+const formHistoricalContentB = [
+]
+
+//
+
+
 const questionnaires = {
-  'demo-dr-forms-questionary-x': {
+  'questionary-x': {
     title: 'Demo with Profile and TTC-TTA',
-    permissions: patientBasePermissions.map(perm => ({
+    permissions: patientBasePermissionsX.map(perm => ({
       streamId: perm.id,
       level: 'read',
       name: perm.name,
@@ -155,18 +173,42 @@ const questionnaires = {
         type: 'permanent',
         key: 'profile-x',
         name: 'Profile',
-        content: formProfileContent
+        content: formProfileContentX
       },
       history: {
         type: 'recurring',
         key: 'recurring-x',
         name: 'History',
-        content: formHistoricalContent
+        content: formHistoricalContentX
+      }
+    }
+  },
+  'questionnary-basic': {
+    title: 'Basic Profile and Cycle Information',
+    permissions: patientBasePermissionsB.map(perm => ({
+      streamId: perm.id,
+      level: 'read',
+      name: perm.name,
+    })),
+    patientBaseStreams,
+    forms: {
+      profile: {
+        type: 'permanent',
+        key: 'profile-b',
+        name: 'Profile',
+        content: formProfileContentBase
+      },
+      history: {
+        type: 'recurring',
+        key: 'recurring-b',
+        name: 'History',
+        content: formHistoricalContentB
       }
     }
   }
 }
 
 export const dataDefs = {
-  questionnaires
+  appId: 'demo-dr-forms',
+  questionnaires,
 };

@@ -76,6 +76,7 @@ async function showFormDetails(formInfo) {
   document.getElementById('card-questionnary-details-something').style.display= show ? 'block' : 'none';
   // clear navData
   patientLib.navSetData(null);
+  console.log("## nav get data", patientLib.navGetData());
   if (!show) return;
   const formDetails = await patientHomeLib.getQuestionnaryDetails(formInfo);
   console.log('## showFormDetails', formDetails);
@@ -109,14 +110,12 @@ async function showFormDetails(formInfo) {
     questionaryId: formInfo.questionaryId
   }
   patientLib.navSetData(navData);
-  console.log("## nav set data", patientLib.navGetData())
 
   if (formDetails.status === 'accepted') {
     buttonOpen.innerHTML = 'Open';
     buttonOpen.onclick = async function () {
       // -- hack publish access anyway (this should be done just once)
-      await patientHomeLib.publishAccess(formInfo, formDetails.sharedApiEndpoint);
-      patientLib.navSetData()
+      await patientHomeLib.publishAccess(formDetails);
       document.location.href = 'patient-profile.html';
     };
     buttonRevoke.innerHTML = 'Revoke';

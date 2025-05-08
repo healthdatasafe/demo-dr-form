@@ -10,17 +10,18 @@ export const patientHomeLib = {
   revokeAccess
 }
 
-const AppBaseStreams = {
-  base: {id: 'demo-dr-forms', name: 'Demo Dr Forms'},
-  inbox: {id: 'demo-dr-forms-inbox', name: 'Demo Dr Forms - Inbox', parentId: 'demo-dr-forms'},
-  accepted: {id: 'demo-dr-forms-accepted', name: 'Demo Dr Forms - Accepted', parentId: 'demo-dr-forms'},
-  rejected: {id: 'demo-dr-forms-rejected', name: 'Demo Dr Forms - Rejected', parentId: 'demo-dr-forms'},
+const appPatientStreamId = dataDefs.appId + '-patient'; // simply use the appId + '-patient'
+const AppPatientsStreams = {
+  base: {id: appPatientStreamId, name: 'Demo Dr Forms as Patient'},
+  inbox: {id: appPatientStreamId + '-inbox', name: 'Demo Dr Forms - Inbox', parentId: appPatientStreamId},
+  accepted: {id:  appPatientStreamId + '-accepted', name: 'Demo Dr Forms - Accepted', parentId: appPatientStreamId},
+  rejected: {id:  appPatientStreamId + '-rejected', name: 'Demo Dr Forms - Rejected', parentId: appPatientStreamId},
 };
 
 const StatusForStreamId = {
-  [AppBaseStreams.inbox.id]: 'Incoming request',
-  [AppBaseStreams.accepted.id]: 'Accepted',
-  [AppBaseStreams.rejected.id]: 'Rejected',
+  [AppPatientsStreams.inbox.id]: 'Incoming request',
+  [AppPatientsStreams.accepted.id]: 'Accepted',
+  [AppPatientsStreams.rejected.id]: 'Rejected',
 }
 
 /**
@@ -34,7 +35,7 @@ async function getForms (formApiEndpoint) {
   // init base for streams
   await initBaseFormsStreams(connection);
   // get list of form
-  const eventRes = await connection.api([{ method: 'events.get', params: { streams: [AppBaseStreams.base.id], limit: 100}}]);
+  const eventRes = await connection.api([{ method: 'events.get', params: { streams: [AppPatientsStreams.base.id], limit: 100}}]);
 
   const forms = eventRes[0].events;
 
@@ -45,7 +46,7 @@ async function getForms (formApiEndpoint) {
       const apiCalls = [{
         method: 'events.create',
         params: {
-          streamIds: [AppBaseStreams.inbox.id],
+          streamIds: [AppPatientsStreams.inbox.id],
           type: 'credentials/pryv-api-endpoint',
           content: formApiEndpoint
         }
@@ -70,7 +71,7 @@ async function getForms (formApiEndpoint) {
 
 // Creates the the streams structure for accepted and rejected froms
 async function initBaseFormsStreams (connection) {
-  const streams = Object.values(AppBaseStreams);
+  const streams = Object.values(AppPatientsStreams);
   await createsPatientAccountStreams(connection, streams);
 }
 
@@ -109,7 +110,7 @@ async function grantAccess (formInfo, formDetails) {
       type: 'shared',
       permissions: permissionsCleaned,
       clientData: {
-        'demo-dr-form': {
+        [dataDefs.appId]: {
           questionaryId: formInfo.questionaryId,
         }
       }
@@ -117,24 +118,28 @@ async function grantAccess (formInfo, formDetails) {
   }]);
   const createdAccess = accessRes[0].access;
   console.log('## Patient shared access created', accessRes);
-  await publishAccess (formInfo, createdAccess.apiEndpoint);
+  formDetails.status = 'accepted';
+  formDetails.sharedApiEndpoint = createdAccess.apiEndpoint;
+  formDetails.sharedAccessId = createdAccess.id;
+
+  await publishAccess (formDetails);
 }
 
-async function publishAccess (formInfo, apiEndpoint) {
+async function publishAccess (formDetails) {
   // create needed base streams
-  const baseStreams = dataDefs.questionnaires[formInfo.questionaryId].patientBaseStreams;
+  const baseStreams = dataDefs.questionnaires[formDetails.formInfo.questionaryId].patientBaseStreams;
   await createsPatientAccountStreams(connection, baseStreams);
 
   // publishing access on Dr Account
   const apiCalls = [{
     method: 'events.create',
     params: {
-      streamIds: ['patients-inbox'],
+      streamIds: [formDetails.appInfos.inboxStreamId],
       type: 'credentials/pryv-api-endpoint',
-      content: apiEndpoint
+      content: formDetails.sharedApiEndpoint
     }
   }];
-  const publishRes = await formInfo.drConnection.api(apiCalls);
+  const publishRes = await formDetails.formInfo.drConnection.api(apiCalls);
   console.log('## Shared access published to Dr Account', publishRes);
   if (! publishRes[0].event) {
     const error = new Error('Failed publishing Acces');
@@ -142,7 +147,7 @@ async function publishAccess (formInfo, apiEndpoint) {
     throw error;
   }
   // -- update access and place in 'demo-dr-forms-accepted'
-  await updateEventFormStatus(formInfo, 'accepted');
+  await updateEventFormStatus(formDetails.formInfo, 'accepted');
 }
 
 /**
@@ -151,7 +156,7 @@ async function publishAccess (formInfo, apiEndpoint) {
  * @param {string} newStatus 'accepted', 'rejected'
  */
 async function updateEventFormStatus (formInfo, newStatus) {
-  const newStreamId = AppBaseStreams[newStatus].id;
+  const newStreamId = AppPatientsStreams[newStatus].id;
   const previousStreamsId = formInfo.formEvent.streamIds[0];
   if (newStreamId === previousStreamsId) return;
   const apiCalls = [{
@@ -199,7 +204,11 @@ async function getQuestionnaryDetails (formInfo) {
 
    //-- get access permissions request --//
    const drAccessInfo = await formInfo.drConnection.accessInfo();
-   const questionaryId = drAccessInfo.clientData?.['demo-dr-form']?.questionaryId;
+   const appInfos = drAccessInfo.clientData?.[dataDefs.appId];
+   if (appInfos == null) throw new Error('Cannot find app information for ' + dataDefs.appId + ' in access clientData');
+   details.appInfos = appInfos;
+
+   const questionaryId = appInfos.questionaryId;
    console.log('## Questionnary ID', questionaryId);
 
    details.permissions = dataDefs.questionnaires[questionaryId]?.permissions;
@@ -216,7 +225,7 @@ async function getQuestionnaryInfo (formEvent) {
   const drConnection = new Pryv.Connection(formApiEndpoint);
   const drAccessInfo = await drConnection.accessInfo();
   console.log('## Dr Form info', drAccessInfo);
-  const questionaryId = drAccessInfo.clientData?.['demo-dr-form']?.questionaryId;
+  const questionaryId = drAccessInfo.clientData?.[dataDefs.appId]?.questionaryId;
   const drUserId = drAccessInfo.user.username;
 
   const statusLabel = StatusForStreamId[formEvent.streamIds[0]];;
@@ -253,18 +262,13 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
      spanButtonID: loginSpanId, // div id the DOM that will be replaced by the Service specific button
      onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
      authRequest: { // See: https://api.pryv.com/reference/#auth-request
-       requestingAppId: 'demo-dr-form-patient', // to customize for your own app
+       requestingAppId: dataDefs.appId + '-patient', // to customize for your own app
        requestedPermissions,
        clientData: {
          'app-web-auth:description': {
            'type': 'note/txt',
            'content': 'This app allows manage form requests from doctors.\n It requires access to all your HDS account\s data. Still you will be able to manage what data to share with your doctor.',
-         },
-         'app-web-auth:ensureBaseStreams': [
-           {id: 'body', name: 'Body metrics'},
-           {id: 'body-height', name: 'Body height', parentId: 'body'},
-           {id: 'body-weight', name: 'Body weight', parentId: 'body'}
-         ]
+         }
        },
      }
    };

@@ -16,12 +16,13 @@ function set (cookieKey, value, expireInDays = 365, path) {
   expireInDays = expireInDays;
   const myDate = new Date();
   const hostName = window.location.hostname;
-  const cookiePath = window.location.pathname;
+  const cookiePath = path || window.location.pathname;
   myDate.setDate(myDate.getDate() + expireInDays);
   let cookieStr = encodeURIComponent(cookieKey) + '=' +
     encodeURIComponent(JSON.stringify(value)) +
+    ';path=' + cookiePath +
     ';expires=' + myDate.toGMTString() +
-    ';domain=.' + hostName + ';path=' + cookiePath;
+    ';domain=' + hostName ;
   // do not add SameSite when removing a cookie
   if (expireInDays >= 0) cookieStr += ';SameSite=Strict';
   document.cookie = cookieStr;
@@ -46,6 +47,6 @@ function get (cookieKey) {
  * @memberof CookieUtils
  * @param cookieKey - The key
  */
-function del (cookieKey) {
-  set(cookieKey, { deleted: true }, -1);
+function del (cookieKey, path) {
+  set(cookieKey, { deleted: true }, -1, path);
 }

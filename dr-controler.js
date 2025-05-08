@@ -14,7 +14,6 @@ window.onload = (event) => {
 };
 
 async function stateChange(state) {
-  const questionaryId = 'demo-dr-forms-questionary-x';
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.visibility = 'hidden';
     document.getElementById('data-view').style.visibility = 'visible';
@@ -52,6 +51,7 @@ async function setQuestionnaries() {
 }
 
 async function showQuestionnary(questionaryId) {
+  console.log('## showQuestionnary', questionaryId);
   if (questionaryId == null) {
     document.getElementById('questionnary-view').style.visibility = 'hidden';
     return;
