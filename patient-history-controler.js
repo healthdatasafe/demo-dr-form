@@ -77,9 +77,7 @@ async function refreshDataTable(date) {
     const row = table.insertRow(-1);
     if (currentDateStr === dateStr) {
       row.style.backgroundColor = 'grey';
-    } else {
-      row.onclick = 
-    }
+    } 
 
     const cellDate = row.insertCell(-1);
     cellDate.innerHTML = dateStr;
