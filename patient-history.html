@@ -28,12 +28,15 @@
         <h2 class="card-title"> Questionnary: <span id="card-questionnary-details-title"></span></h2>
         <h3 class="card-title"> Set: <span id="card-questionnary-details-question-set">Historical Data</span></h3>
         <div class="form-group">
+          <label for="form-date">Entry date</label>
+          <input type="date" id="form-date" class="form-control"/>
           <div class="input-group" id="inputs-list">
             <!-- HERE WILL GO THE INPUTS-->
           </div>
         </div>
         <button type="button" id="submit-button-list" class="btn btn-primary mb-2">Submit</button>
       </form>
+      <table id="historical-data" class="table"></table>
     </div>
   </div>
 </body>

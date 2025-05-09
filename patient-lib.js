@@ -7,6 +7,7 @@ export const patientLib = {
   handleFormSubmit,
   getFormTitle,
   getFormContent,
+  getHistoricalContent,
   connect,
   navSetData,
   navGetData,
@@ -132,23 +133,65 @@ async function getFormExistingContent (form, date) {
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
-      if (field.type === 'date' && event.content != null ) {
-        // convert the date to a Date object
-        const date = new Date(event.content);
-        if (!isNaN(date)) {
-          field.value = date.toISOString().split('T')[0]; // format YYYY-MM-DD
-        } else {
-          console.error('## Error parsing date', event.content);
-          field.value = '';
-        }
-      } else {
-        field.value = event.content;
-      }
+      field.value = valueForField(event.content, field);
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
   return formData;
 };
+
+
+async function getHistoricalContent(questionaryId, formKey) {
+  const formFields = dataDefs.questionnaires[questionaryId].forms[formKey].content;
+  const tableHeaders = formFields.map(field => ({
+    fieldId: field.streamId + ':' + field.eventType,
+    label: field.label,
+    type: field.type
+  }));
+
+  const valuesByDate = {};
+  function addEntry (field, time, value) {
+    const dateStr = (new Date(time * 1000)).toISOString().split('T')[0];
+    if (valuesByDate[dateStr] == null) valuesByDate[dateStr] = {};
+    const fieldId = field.streamId + ':' + field.eventType;
+    valuesByDate[dateStr][fieldId] = valueForField(value, field);
+  }
+
+  // get the values from the API
+  const apiCalls = formFields.map(field => ({
+    method: 'events.get',
+    params: {
+      streams: [field.streamId],
+      types: [field.eventType],
+      limit: 20, // last 20 is enough for a demo
+    }
+  }));
+  const res = await connection.api(apiCalls);
+  for (let i = 0; i < res.length; i++) {
+    const e = res[i];
+    const field = formFields[i];
+    if (e.events) {
+      for (const event of e.events) {
+        addEntry(field, event.time, event.content);
+      }
+    } 
+  }
+
+  return { tableHeaders, valuesByDate };
+}
+
+function valueForField (eventContent, field) {
+  if (field.type === 'date' && eventContent != null ) {
+    // convert the date to a Date object
+    const date = new Date(eventContent);
+    if (!isNaN(date)) {
+      return date.toISOString().split('T')[0]; // format YYYY-MM-DD
+    } 
+    console.error('## Error parsing date', eventContent);
+    return '';
+  }
+  return eventContent;
+}
 
 // ---------------- create / update data ---------------- //
 
@@ -219,6 +262,7 @@ async function handleFormSubmit (formData, values, date) {
         streamId: streamId,
         type: eventType,
         content: value,
+        time: date ? date.getTime() / 1000 : null
       }
     });
   }
