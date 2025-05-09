@@ -1,4 +1,5 @@
 import { patientLib } from './patient-lib.js';
+import { navControler } from './patient-nav-controler.js'
 /**
  * UI management code. 
  * Relies on patientLib for API calls and data management
@@ -7,7 +8,7 @@ import { patientLib } from './patient-lib.js';
  */
 
 window.onload = async (event) => {
-  const navData = patientLib.navGetData();
+  const navData = await navControler.setNavComponents();
   console.log('## navData', navData);
   const { patientApiEndpoint, questionaryId } = navData;
   console.log('## patientApiEndpoint:', patientApiEndpoint);
@@ -15,10 +16,6 @@ window.onload = async (event) => {
    // - form title
    const formTitle = document.getElementById('card-questionnary-details-title');
    formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
-  // -- navigation
-  document.getElementById('nav-profile').onclick = () => {
-    document.location.href = 'patient-profile.html';
-  };
   
   // -- connection
   updateFormContent(questionaryId, 'history');

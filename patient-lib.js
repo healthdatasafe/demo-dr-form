@@ -1,14 +1,17 @@
 import { dataDefs } from './common-data-defs.js';
 import { CookieUtils } from './CookieUtils.js';
 
+
+
 export const patientLib = {
   handleFormSubmit,
   getFormTitle,
   getFormContent,
   connect,
-  getNavigationQueryParams,
   navSetData,
-  navGetData
+  navGetData,
+  getForms,
+  navGetPages
 }
 
 
@@ -22,10 +25,6 @@ async function connect (apiEndpoint, questionaryId) {
   return accessInfo;
 }
 
-function getNavigationQueryParams() {
-  return `?patientApiEndpoint=${connection.apiEndpoint}&questionaryId=${_questionaryId}`
-}
-
 // --------------- navigation - to be replaced if built-in framework ------- //
 
 const COOKIE_KEY = 'hds-' + dataDefs.appId;
@@ -35,7 +34,34 @@ function navSetData(data) {
 }
 
 function navGetData() {
-  return CookieUtils.get(COOKIE_KEY);
+  const cookieContent = CookieUtils.get(COOKIE_KEY);
+  const formKey = (new URLSearchParams(window.location.search)).get('formKey');
+  return Object.assign({ formKey }, cookieContent);
+}
+
+const pagesByTypes = {
+  home: 'patient.html',
+  permanent: 'patient-profile.html',
+  recurring: 'patient-history.html'
+};
+
+async function navGetPages(questionaryId) {
+  const pages = [{
+    type: 'home',
+    url: pagesByTypes.home,
+    label: 'Home',
+    formKey: null
+  }];
+  const forms = await patientLib.getForms(questionaryId);
+  for (const [formKey, form] of Object.entries(forms)) {
+    pages.push({
+      type: form.type,
+      label: form.name,
+      url: pagesByTypes[form.type] + '?formKey=' + formKey,
+      formKey
+    });
+  }
+  return pages;
 }
 
 
@@ -44,6 +70,11 @@ function navGetData() {
 function getFormTitle (questionaryId) {
   return dataDefs.questionnaires[questionaryId].title;
 }
+
+async function getForms (questionaryId) {
+  return dataDefs.questionnaires[questionaryId].forms;
+}
+
 
 async function getFormContent (questionaryId, formKey) {
   const form = dataDefs.questionnaires[questionaryId].forms[formKey];

@@ -113,10 +113,11 @@ async function showFormDetails(formInfo) {
 
   if (formDetails.status === 'accepted') {
     buttonOpen.innerHTML = 'Open';
+    const nextPage = (await patientLib.navGetPages(formInfo.questionaryId))[1].url;
     buttonOpen.onclick = async function () {
       // -- hack publish access anyway (this should be done just once)
       await patientHomeLib.publishAccess(formDetails);
-      document.location.href = 'patient-profile.html';
+      document.location.href = nextPage;
     };
     buttonRevoke.innerHTML = 'Revoke';
     buttonRevoke.onclick = async function () {
@@ -129,7 +130,7 @@ async function showFormDetails(formInfo) {
     buttonOpen.innerHTML = 'Grant access and Open';
     buttonOpen.onclick = async function () {
       await patientHomeLib.grantAccess(formInfo, formDetails);
-      document.location.href = 'patient-profile.html';
+      document.location.href = nextPage;
     };
     buttonRevoke.innerHTML = 'Refuse';
     buttonRevoke.onclick = async function () {
