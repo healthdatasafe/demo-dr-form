@@ -21,23 +21,32 @@ window.onload = async (event) => {
   dateInput.onfocusout = function () {
     const date = dateInput.valueAsDate;
     console.log("## Focus Out Date", date);
-    refreshForm(date);
+    refreshAll(date);
   };
 
-  refreshForm(dateInput.valueAsDate);
-  refreshDataTable();
+  refreshAll(dateInput.valueAsDate);
 };
 
-async function refreshForm(date) {
+async function refreshAll(date) {
   console.log("## Refresh Form Date:", date);
   const { questionaryId, formKey } = navData;
   // -- content
   console.log();
   const formData = await patientLib.getFormContent(
     questionaryId,
-    formKey,
-    date
+    formKey
   );
+  const tableRow = await refreshDataTable(date);
+  console.log('## tableRow', tableRow);
+
+  // HACKY WAY TO ADD EXISTNG CONTENT SHOULD BE DONE IN LIB
+  for (const field of formData) {
+    if (tableRow[field.id]) {
+      field.value = tableRow[field.id].value;
+      field.eventId = tableRow[field.id].eventId;
+    }
+  }
+
   updateFormContent(formData);
   document.getElementById("submit-button-list").onclick = function () {
     submitForm(formData, date);
@@ -45,6 +54,7 @@ async function refreshForm(date) {
 }
 
 async function refreshDataTable(date) {
+  const currentDateStr = date.toISOString().split("T")[0]; // format YYYY-MM-DD;
   const { questionaryId, formKey } = navData;
   const tableData = await patientLib.getHistoricalContent(
     questionaryId,
@@ -65,15 +75,22 @@ async function refreshDataTable(date) {
   }
   for (const [dateStr, data] of Object.entries(tableData.valuesByDate)) {
     const row = table.insertRow(-1);
+    if (currentDateStr === dateStr) {
+      row.style.backgroundColor = 'grey';
+    } else {
+      row.onclick = 
+    }
+
     const cellDate = row.insertCell(-1);
     cellDate.innerHTML = dateStr;
     for (const th of tableData.tableHeaders) {
       const cell = row.insertCell(-1);
-      cell.innerHTML = data[th.fieldId] || '';
+      cell.innerHTML = data[th.fieldId]?.value || '';
     }
   }
 
   console.log("## tabledata", tableData);
+  return tableData.valuesByDate[currentDateStr] || {};
 }
 
 // ------- Form -------- //
@@ -89,7 +106,7 @@ async function updateFormContent(formData) {
   for (let i = 0; i < formData.length; i++) {
     const formField = formData[i];
     const fieldId = formField.id;
-    const fieldValue = formField.value != null ? formField.value : "";
+    const fieldValue = formField.value != null ? `${formField.value}` : '';
     const fieldType = formField.type;
     const fieldLabel = formField.label;
 
@@ -101,7 +118,7 @@ async function updateFormContent(formData) {
       fieldHTML += `<select id="${fieldId}" class="form-control">`;
       fieldHTML += `<option value="">--</option>`;
       for (const option of formField.options) {
-        const selected = option.value === fieldValue ? "selected" : "";
+        const selected = `${option.value}` === fieldValue ? "selected" : "";
         fieldHTML += `<option value="${option.value}" ${selected}>${option.label}</option>`;
       }
       fieldHTML += `</select>`;
@@ -131,4 +148,5 @@ async function submitForm(formData, date) {
   }
   await patientLib.handleFormSubmit(formData, values, date);
   alert("Form submitted successfully");
+  refreshAll(date);
 }

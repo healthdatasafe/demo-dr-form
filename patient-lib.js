@@ -100,7 +100,7 @@ async function getFormRecurringContent (form, date) {
 
   for (let i = 0; i < formReccuringData.length; i++) {
     const field = formReccuringData[i];
-    field.id = form.key + '-' + i;
+    field.id = field.streamId + ':' + field.eventType;
   }
   return formReccuringData;
   
@@ -129,7 +129,7 @@ async function getFormExistingContent (form, date) {
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
     const field = formData[i];
-    field.id = form.key + '-' + i;
+    field.id = field.streamId + ':' + field.eventType;
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
@@ -150,11 +150,14 @@ async function getHistoricalContent(questionaryId, formKey) {
   }));
 
   const valuesByDate = {};
-  function addEntry (field, time, value) {
+  function addEntry (field, time, event) {
     const dateStr = (new Date(time * 1000)).toISOString().split('T')[0];
     if (valuesByDate[dateStr] == null) valuesByDate[dateStr] = {};
     const fieldId = field.streamId + ':' + field.eventType;
-    valuesByDate[dateStr][fieldId] = valueForField(value, field);
+    valuesByDate[dateStr][fieldId] = {
+      value: valueForField(event.content, field),
+      eventId: event.id
+    }
   }
 
   // get the values from the API
@@ -172,7 +175,7 @@ async function getHistoricalContent(questionaryId, formKey) {
     const field = formFields[i];
     if (e.events) {
       for (const event of e.events) {
-        addEntry(field, event.time, event.content);
+        addEntry(field, event.time, event);
       }
     } 
   }
