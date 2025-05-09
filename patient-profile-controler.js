@@ -7,21 +7,28 @@ import { navControler } from './patient-nav-controler.js'
  * @param {*} event 
  */
 
+let navData;
 window.onload = async (event) => {
-  const navData = await navControler.setNavComponents();
+  navData = await navControler.setNavComponents();
   console.log('## navData', navData);
-  const { patientApiEndpoint, questionaryId } = navData;
+  const { patientApiEndpoint, questionaryId, formKey } = navData;
   console.log('## patientApiEndpoint:', patientApiEndpoint);
   await patientLib.connect(patientApiEndpoint, questionaryId);
   // - form title
   const formTitle = document.getElementById('card-questionnary-details-title');
   formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
+  refreshForm();
+}
+
+async function refreshForm () {
+  const { questionaryId, formKey } = navData;
   // -- content
-  updateFormContent(questionaryId, 'profile');
-  document.getElementById('submit-button-profile').addEventListener("click", function () { 
-    submitForm(questionaryId, 'profile'); 
-  });
-  
+;  console.log()
+  const formData = await patientLib.getFormContent(questionaryId, formKey)
+  updateFormContent(formData);
+  document.getElementById('submit-button-list').onclick =  function () { 
+    submitForm(formData); 
+  };
 }
 
 
@@ -30,11 +37,11 @@ window.onload = async (event) => {
 /**
  * Take the from content from the definition and actual values and create the HTML
  */
-async function updateFormContent(questionaryId, formKey) {
-  const formData = await patientLib.getFormContent(questionaryId, formKey);
+async function updateFormContent(formData) {
   console.log('Form content:', formData);
  
-  document.getElementById('inputs-' + formKey).innerHTML = ''; // Clear previous content
+  // Append the HTML to the form
+  document.getElementById('inputs-list').innerHTML = ''; // Clear previous content
   for (let i = 0; i < formData.length; i++) {
     const formField = formData[i];
     const fieldId = formField.id;
@@ -57,17 +64,16 @@ async function updateFormContent(questionaryId, formKey) {
     } else if (fieldType === 'date') {
       fieldHTML += `<input type="date" id="${fieldId}" value="${fieldValue}" class="form-control"/>`;
     }
-    // Append the HTML to the form
-    document.getElementById('inputs-' + formKey).innerHTML += fieldHTML;
+   
+    document.getElementById('inputs-list').innerHTML += fieldHTML;
   }
 }
 
 /**
  * Submit the form and send the data to the API
  */
-async function submitForm(questionaryId, formKey) {
+async function submitForm(formData) {
   const values = {};
-  const formData = await patientLib.getFormContent(questionaryId, formKey);
   for (let i = 0; i < formData.length; i++) {
     const field = formData[i];
     const fieldId = field.id;
@@ -79,6 +85,6 @@ async function submitForm(questionaryId, formKey) {
       values[field.id] = formField.value.trim(); 
     }    
   }
-  await patientLib.handleFormSubmit(questionaryId, formKey, values);
+  await patientLib.handleFormSubmit(formData, values);
   alert('Form submitted successfully');
 };

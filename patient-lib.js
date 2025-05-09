@@ -75,20 +75,26 @@ async function getForms (questionaryId) {
   return dataDefs.questionnaires[questionaryId].forms;
 }
 
-
-async function getFormContent (questionaryId, formKey) {
+/**
+ * Get Form content
+ * @param {string} questionaryId 
+ * @param {string} formKey 
+ * @param {Date} [date] - If editing content from existing date 
+ * @returns 
+ */
+async function getFormContent (questionaryId, formKey, date) {
   const form = dataDefs.questionnaires[questionaryId].forms[formKey];
   console.log('## getFormContent', form, questionaryId, formKey);
   if (form.type === 'permanent') {
-    return getFormPermanentContent(form);
+    return getFormExistingContent(form);
   }
   if (form.type === 'recurring') {
-    return getFormRecurringContent(form);
+    return getFormRecurringContent(form, date);
   }
   return [];
 }
 
-async function getFormRecurringContent (form) {
+async function getFormRecurringContent (form, date) {
   const formReccuringData = structuredClone(form.content);
 
   for (let i = 0; i < formReccuringData.length; i++) {
@@ -96,16 +102,20 @@ async function getFormRecurringContent (form) {
     field.id = form.key + '-' + i;
   }
   return formReccuringData;
+  
 }
 
 // local copy of formProfileContent + actual values
-let formPermanentData = null;
-async function getFormPermanentContent (form) {
-  if (formPermanentData) { return formPermanentData; }
-  formPermanentData = structuredClone(form.content);
+/**
+ * @param {*} form 
+ * @param {*} date 
+ * @returns 
+ */
+async function getFormExistingContent (form, date) {
+  const formData = structuredClone(form.content);
 
   // get the values from the API
-  const apiCalls = formPermanentData.map(field => ({
+  const apiCalls = formData.map(field => ({
     method: 'events.get',
     params: {
       streams: [field.streamId],
@@ -117,7 +127,7 @@ async function getFormPermanentContent (form) {
   const res = await connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
-    const field = formPermanentData[i];
+    const field = formData[i];
     field.id = form.key + '-' + i;
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
@@ -137,7 +147,7 @@ async function getFormPermanentContent (form) {
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
-  return formPermanentData;
+  return formData;
 };
 
 // ---------------- create / update data ---------------- //
@@ -166,9 +176,9 @@ function parseValue (value, type) {
   return value;
 }
 
-async function handleFormSubmit (questionaryId, formKey, values) {
+async function handleFormSubmit (formData, values, date) {
   const apiCalls = [];
-  for (const field of formPermanentData) {
+  for (const field of formData) {
     const streamId = field.streamId;
     const eventType = field.eventType;
     const eventId = field.eventId;
