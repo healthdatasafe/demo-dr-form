@@ -73,7 +73,7 @@ async function setPatientList(questionaryId) {
   const table = document.getElementById('patients-table');
   // clear table
   table.innerHTML = '';
-  const fields = drLib.getFields(questionaryId);
+  const fields = drLib.getFirstFormFields(questionaryId);
   const headers = {
     status: 'Status',
     username: 'Username'

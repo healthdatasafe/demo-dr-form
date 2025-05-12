@@ -7,7 +7,7 @@ export const drLib = {
   showLoginButton,
   getSharingToken,
   getPatientsList,
-  getFields,
+  getFirstFormFields,
   getQuestionnaires,
 };
 
@@ -193,10 +193,12 @@ async function getPatientDetails(questionnaryId, patientEvent) {
 }
 
 /**
- * get the list of rows for the table
+ * get the list of rows for the initial table
  */
-function getFields(questionaryId) {
-  return dataDefs.questionnaires[questionaryId].forms.profile.content;
+function getFirstFormFields(questionaryId) {
+  const forms = dataDefs.questionnaires[questionaryId].forms;
+  const firstForm = Object.values(dataDefs.questionnaires[questionaryId].forms)[0];
+  return firstForm.content;
 }
 
 const dataFieldsCaches = {};
