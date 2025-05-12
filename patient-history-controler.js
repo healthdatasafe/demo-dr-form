@@ -55,6 +55,7 @@ async function refreshAll(date) {
 
 async function refreshDataTable(date) {
   const currentDateStr = date.toISOString().split("T")[0]; // format YYYY-MM-DD;
+  let currentValue = {};
   const { questionaryId, formKey } = navData;
   const tableData = await patientLib.getHistoricalContent(
     questionaryId,
@@ -73,14 +74,15 @@ async function refreshDataTable(date) {
     headerCell.innerHTML = th.label;
     headerRow.appendChild(headerCell);
   }
-  for (const [dateStr, data] of Object.entries(tableData.valuesByDate)) {
+  for (const data of tableData.valuesByDate) {
     const row = table.insertRow(-1);
-    if (currentDateStr === dateStr) {
+    if (currentDateStr === data.dateStr) {
+      currentValue = data;
       row.style.backgroundColor = 'grey';
     } 
 
     const cellDate = row.insertCell(-1);
-    cellDate.innerHTML = dateStr;
+    cellDate.innerHTML = data.dateStr;
     for (const th of tableData.tableHeaders) {
       const cell = row.insertCell(-1);
       const v = data[th.fieldId]?.value;
@@ -89,7 +91,7 @@ async function refreshDataTable(date) {
   }
 
   console.log("## tabledata", tableData);
-  return tableData.valuesByDate[currentDateStr] || {};
+  return currentValue;
 }
 
 // ------- Form -------- //

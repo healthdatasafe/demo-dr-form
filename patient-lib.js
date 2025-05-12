@@ -149,12 +149,15 @@ async function getHistoricalContent(questionaryId, formKey) {
     type: field.type
   }));
 
-  const valuesByDate = {};
+  const valuesByDateStr = {};
   function addEntry (field, time, event) {
     const dateStr = (new Date(time * 1000)).toISOString().split('T')[0];
-    if (valuesByDate[dateStr] == null) valuesByDate[dateStr] = {};
+    if (valuesByDateStr[dateStr] == null) valuesByDateStr[dateStr] = {
+      dateNum: (new Date(dateStr)).getTime() / 100,
+      dateStr,
+    };
     const fieldId = field.streamId + ':' + field.eventType;
-    valuesByDate[dateStr][fieldId] = {
+    valuesByDateStr[dateStr][fieldId] = {
       value: valueForField(event.content, field),
       eventId: event.id
     }
@@ -180,6 +183,8 @@ async function getHistoricalContent(questionaryId, formKey) {
     } 
   }
 
+  // order by date
+  const valuesByDate = Object.values(valuesByDateStr).sort((a, b) => b.dateNum - a.dateNum);
   return { tableHeaders, valuesByDate };
 }
 
