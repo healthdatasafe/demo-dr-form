@@ -83,7 +83,8 @@ async function refreshDataTable(date) {
     cellDate.innerHTML = dateStr;
     for (const th of tableData.tableHeaders) {
       const cell = row.insertCell(-1);
-      cell.innerHTML = data[th.fieldId]?.value || '';
+      const v = data[th.fieldId]?.value;
+      cell.innerHTML = v != null ? v : '' ;
     }
   }
 

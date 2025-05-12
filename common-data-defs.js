@@ -102,6 +102,7 @@ const formHistoricalContentX = [
     eventType: 'fertility-intention/ttc-tta',
     label: 'Trying to conceive / Avoiding pregnancy',
     type: 'select',
+    parseValueToNum: true,
     options: [
       {
         value: 0,
@@ -154,6 +155,23 @@ const formHistoricalContentX = [
 ]
 
 const formHistoricalContentB = [
+  {
+    streamId: 'body-weight',
+    eventType: 'mass/kg',
+    type: 'number',
+    label: 'Body Weight (kg)',
+  },
+  {
+    label: 'Vulva Wetness feeling',
+    streamId: 'body-vulva-wetness-feeling',
+    eventType: 'ratio/generic',
+    type: 'select',
+    options: [
+      { value: 0, label: 'Dry' },
+      { value: 1, label: 'Wet' },
+      { value: 2, label: 'Very wet'}
+    ]
+  }
 ]
 
 //

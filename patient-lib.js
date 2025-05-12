@@ -193,22 +193,21 @@ function valueForField (eventContent, field) {
     console.error('## Error parsing date', eventContent);
     return '';
   }
+  if (field.eventType === 'ratio/generic' && eventContent != null ) {
+    return eventContent.value;
+  }
   return eventContent;
 }
 
 // ---------------- create / update data ---------------- //
 
-function parseValue (value, type) {
+function parseValue (value, field) {
+  const type = field.type;
   if (value === undefined || value === null || value === '') {
     return '';
   }
-  if (type === 'number') {
-    const parsedValue = parseFloat(value);
-    if (isNaN(parsedValue)) {
-      console.error('## Error parsing number', value);
-      return '';
-    }
-    return parsedValue;
+  if (type === 'number' || field.parseValueToNum) {
+    return parseFloatCustom(value);
   }
   if (type === 'boolean') {
     return value === 'true';
@@ -219,7 +218,26 @@ function parseValue (value, type) {
     }
     return value === '';
   }
+  if (type === 'select' && field.eventType === 'ratio/generic') {
+    const numValue = parseFloatCustom(value);
+    if (numValue === '') return '';
+    // relative to is the latest value of options
+    const relativeTo = field.options[field.options.length -1].value;
+    return {
+      value: numValue,
+      relativeTo
+    }
+  }
   return value;
+}
+
+function parseFloatCustom(value) {
+  const parsedValue = parseFloat(value);
+  if (isNaN(parsedValue)) {
+    console.error('## Error parsing number', value);
+    return '';
+  }
+  return parsedValue;
 }
 
 async function handleFormSubmit (formData, values, date) {
@@ -228,7 +246,7 @@ async function handleFormSubmit (formData, values, date) {
     const streamId = field.streamId;
     const eventType = field.eventType;
     const eventId = field.eventId;
-    const value = parseValue(values[field.id], field.type);
+    const value = parseValue(values[field.id], field);
     if (value === '' && eventId) {
       // delete the event
       apiCalls.push({
