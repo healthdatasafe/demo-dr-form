@@ -64,8 +64,8 @@ async function getQuestionnaires() {
 
 const patients = {};
 
-async function getPatientsList(questionnaryId, limit = 100) {
-  const qStreams = questionnaryStreams(questionnaryId);
+async function getPatientsList(questionaryId, limit = 100) {
+  const qStreams = questionnaryStreams(questionaryId);
   const res = await drConnection.api([
     {
       method: "events.get",
@@ -104,7 +104,7 @@ async function getPatientsList(questionnaryId, limit = 100) {
 
   // -- get the patients
   const patientPromises = Object.values(uniques).map((patientEvent) =>
-    getPatientDetails(questionnaryId, patientEvent)
+    getPatientDetails(questionaryId, patientEvent)
   );
   const patientsResults = await Promise.all(patientPromises);
 
@@ -123,9 +123,9 @@ async function getPatientsList(questionnaryId, limit = 100) {
 /**
  * get patients details
  */
-async function getPatientDetails(questionnaryId, patientEvent) {
+async function getPatientDetails(questionaryId, patientEvent) {
   // -- check if the event is a patient event
-  const qStreams = questionnaryStreams(questionnaryId);
+  const qStreams = questionnaryStreams(questionaryId);
   if (patientEvent.type !== "credentials/pryv-api-endpoint") return null;
   const patient = {
     status: "active",
@@ -170,7 +170,7 @@ async function getPatientDetails(questionnaryId, patientEvent) {
 
   // -- get data
   // get profile form data
-  const formProfile = dataDefs.questionnaires[questionnaryId].forms.profile;
+  const formProfile = dataDefs.questionnaires[questionaryId].forms.profile;
 
   // get the last value of each field
   const apiCalls = formProfile.content.map((field) => ({

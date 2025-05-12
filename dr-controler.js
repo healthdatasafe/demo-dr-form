@@ -40,7 +40,7 @@ async function setQuestionnaries() {
     select.add(option);
   }
  
-  // -- 
+  // -- on change
   select.onchange = function () {
     if (select.value === '') {
       showQuestionnary(null);
@@ -48,6 +48,19 @@ async function setQuestionnaries() {
     }
     showQuestionnary(select.value);
   }
+  // -- on load
+  const selectedQuestionnary = getQuestionnaryFromUrl();
+  if (selectedQuestionnary) {
+    select.value = selectedQuestionnary;
+    showQuestionnary(selectedQuestionnary);
+  }
+}
+
+// ------- Get Dr's info -------- //
+function getQuestionnaryFromUrl() {
+  const params = new URLSearchParams(document.location.search);
+  const questionaryId = params.get('questionaryId');
+  return questionaryId
 }
 
 async function showQuestionnary(questionaryId) {
@@ -100,15 +113,12 @@ async function setPatientList(questionaryId) {
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
     console.log('>> patient', patient);
-    row.onclick = function () {
-      document.location.href = `dr-patient-view.html?patientApiEndpoint=${patient.apiEndpoint}&questionaryId=${questionaryId}`
-    }
-
 
     const cellStatus = row.insertCell(-1);
     cellStatus.innerHTML = patient.status;
     const cellUsername = row.insertCell(-1);
-    cellUsername.innerHTML = patient.username;
+    const page = `dr-patient-view.html?patientApiEndpoint=${patient.apiEndpoint}&questionaryId=${questionaryId}`;
+    cellUsername.innerHTML = `<A HREF="${page}">${patient.username}</A>`;
     const patientData = {
       status: patient.status,
       username: patient.username

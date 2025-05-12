@@ -4,7 +4,7 @@ import { exportCSVFile } from "./exportToCSV.js";
  * Based on 
  * - drApiConnecion
  * - patientApiConnection
- * - questionnaryId
+ * - questionaryId
  * 
  * Display live update of data
  */
@@ -32,6 +32,9 @@ async function refresh () {
   const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
   const { infos, lines }  = await drPatientLib.getPatientData(patientApiEndpoint, questionaryId);
   console.log('>> zz', infos);
+  // -- home button
+  document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
+
   // -- set patient Id
   const username = infos.user.username;
   document.getElementById('patient-label').innerHTML = username;
