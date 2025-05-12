@@ -29,8 +29,9 @@ async function getPatientData (patientApiEndoint, questionaryId) {
   }
 
   const connection = new Pryv.Connection(patientApiEndoint);
+  const infos = await connection.accessInfo();
   await connection.getEventsStreamed(queryParams, forEachEvent);
-  return patientData;
+  return { infos, lines: patientData };
 }
 
 

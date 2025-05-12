@@ -1,5 +1,5 @@
 import { drPatientLib  } from "./dr-patient-view-lib.js";
-
+import { exportCSVFile } from "./exportToCSV.js";
 /**
  * Based on 
  * - drApiConnecion
@@ -23,10 +23,25 @@ const tableHeaders = {
   description: 'Description'
 }
 
+const downloadHeaders = Object.assign({
+  streamId: 'Stream Id',
+  eventType: 'Event Type'
+}, tableHeaders);
+
 async function refresh () {
   const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
-  console.log('>> zz', patientApiEndpoint, questionaryId);
-  const lines = await drPatientLib.getPatientData(patientApiEndpoint, questionaryId);
+  const { infos, lines }  = await drPatientLib.getPatientData(patientApiEndpoint, questionaryId);
+  console.log('>> zz', infos);
+  // -- set patient Id
+  const username = infos.user.username;
+  document.getElementById('patient-label').innerHTML = username;
+
+  // -- set download button
+  document.getElementById('button-download').onclick = () => {
+    exportCSVFile(downloadHeaders, lines, username + '-' + questionaryId);
+  };
+
+  // -- update table
   const table = document.getElementById('patient-data-table');
   const headerRow = table.insertRow(-1);
   for (const thLabel of Object.values(tableHeaders)) {

@@ -1,30 +1,21 @@
-function convertToCSV(objArray) {
-  var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-  var str = '';
-
-  for (var i = 0; i < array.length; i++) {
-      var line = '';
-      for (var index in array[i]) {
-          if (line != '') line += ','
-
-          line += array[i][index];
-      }
-
-      str += line + '\r\n';
-  }
-
-  return str;
+/**
+ * convert all " to '' and add ","
+ */
+function fenceLine(items) {
+    return '"' + items.map(i => i.replaceAll('"','\'\'')).join('","') + '"\r\n';
 }
 
-export function exportCSVFile(headers, items, fileTitle) {
-  if (headers) {
-      items.unshift(headers);
+export function exportCSVFile(headers, lines, fileTitle) {
+  let csv = fenceLine(Object.values(headers));
+
+  for (const line of lines) {
+    const items = [];
+    for (const key of Object.keys(headers)) {
+        const v = line[key];
+        items.push(v == null ? '': v + '');
+    }
+    csv += fenceLine(items);
   }
-
-  // Convert Object to JSON
-  var jsonObject = JSON.stringify(items);
-
-  var csv = convertToCSV(jsonObject);
 
   var exportedFilenmae = fileTitle + '.csv' || 'export.csv';
 
