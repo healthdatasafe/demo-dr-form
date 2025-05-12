@@ -99,6 +99,12 @@ async function setPatientList(questionaryId) {
   const patientsData = [];
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
+    console.log('>> patient', patient);
+    row.onclick = function () {
+      document.location.href = `dr-patient-view.html?patientApiEndpoint=${patient.apiEndpoint}&questionaryId=${questionaryId}`
+    }
+
+
     const cellStatus = row.insertCell(-1);
     cellStatus.innerHTML = patient.status;
     const cellUsername = row.insertCell(-1);
