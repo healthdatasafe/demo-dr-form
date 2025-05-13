@@ -194,7 +194,6 @@ async function getHistoricalContent(questionaryId, formKey) {
 
 function valueAndTxtForField (eventContent, field) {
   if (field.eventType === 'activity/plain' ) {
-    console.log('>> activity plain')
     return { value: 'x', txt:  'X'};
   }
   if (field.type === 'date' && eventContent != null ) {
@@ -256,7 +255,6 @@ function parseValue (value, field) {
     }
   }
   if (type === 'checkbox' && field.eventType === 'activity/plain') {
-    console.log('>> checkbox', value);
     if (value === 'x') return null; // will be handled as a value
     return '';
   }

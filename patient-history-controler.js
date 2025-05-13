@@ -99,7 +99,6 @@ async function refreshDataTable(currentDateStr) {
       row.style.backgroundColor = '#D3D3D3'; // light grey
     } 
 
-    console.log('>> data', data);
 
     const cellDate = row.insertCell(-1);
     cellDate.innerHTML = `<A HREF="javascript:refreshClick('${data.dateStr}')">${data.dateStr}</A>`;

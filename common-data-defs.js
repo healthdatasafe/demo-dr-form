@@ -43,7 +43,8 @@ const patientBasePermissionsX = [
 const patientBasePermissionsB = [
   {id: 'profile', name: 'Profile'},
   {id: 'fertility-cycles', name: 'Fertility Cycles'},
-  {id: 'body-vulva', name: 'Vulva'}
+  {id: 'body-vulva', name: 'Vulva'},
+  {id: 'body-weight', name: 'Body weight'},
 ]
 
 const formProfileContentBase = [

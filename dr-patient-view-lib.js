@@ -17,7 +17,6 @@ async function setRefresh(patientApiEndoint, questionaryId, refreshCallBack) {
 
   await connection.socket.open();
   connection.socket.on('eventsChanged', async () => {
-    console.log('>> refresh event');
     await doRefresh();
   });
 
