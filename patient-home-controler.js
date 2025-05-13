@@ -111,9 +111,9 @@ async function showFormDetails(formInfo) {
   }
   patientLib.navSetData(navData);
 
+  const nextPage = (await patientLib.navGetPages(formInfo.questionaryId))[1].url;
   if (formDetails.status === 'accepted') {
     buttonOpen.innerHTML = 'Open';
-    const nextPage = (await patientLib.navGetPages(formInfo.questionaryId))[1].url;
     buttonOpen.onclick = async function () {
       // -- hack publish access anyway (this should be done just once)
       await patientHomeLib.publishAccess(formDetails);
