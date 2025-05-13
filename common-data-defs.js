@@ -205,6 +205,12 @@ const formHistoricalContentB = [
     eventType: 'activity/plain',
     type: 'checkbox',
     label: 'New Cycle'
+  },
+  {
+    streamId: 'fertility-cycles-ovulation',
+    eventType: 'activity/plain',
+    type: 'checkbox',
+    label: 'Ovulation Day'
   }
 ]
 
