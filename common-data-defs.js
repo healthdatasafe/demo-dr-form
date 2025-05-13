@@ -214,8 +214,6 @@ const formHistoricalContentB = [
   }
 ]
 
-//
-
 
 const questionnaires = {
   'questionary-x': {

@@ -13,7 +13,7 @@ import { exportCSVFile } from "./exportToCSV.js";
 let infos;
 window.onload = async (event) => {
   const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
-  infos = drPatientLib.setRefresh(patientApiEndpoint, questionaryId, refresh)
+  infos = await drPatientLib.setRefresh(patientApiEndpoint, questionaryId, refresh)
    // -- home button
    document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
 

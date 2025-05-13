@@ -184,7 +184,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
 
   const profileEventsResults = await patientConnection.api(apiCalls);
   for (const profileEventRes of profileEventsResults) {
-    const profileEvent = profileEventRes?.events[0];
+    const profileEvent = profileEventRes?.events?.[0];
     if (!profileEvent) continue;
     const field = dataFieldFromEvent(formProfile, profileEvent);
     patient.formData[field.key] = field;
