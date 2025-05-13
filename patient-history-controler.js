@@ -18,9 +18,9 @@ window.onload = async (event) => {
   formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
   const dateInput = document.getElementById("form-date");
   dateInput.value =  dateToDayStr(new Date()); 
-  dateInput.onfocusout = function () {
+  dateInput.onblur = function () {
     const date = dateInput.valueAsDate;
-    console.log("## Focus Out Date", date);
+    console.log("## Blur Out Date", date);
     refreshAll(dateToDayStr(date));
   };
 
@@ -39,8 +39,15 @@ function refreshClick(dateStr) {
   refreshAll(dateStr);
 }
 
+let lastDateStr = null;
 async function refreshAll(dateStr) {
   console.log("## Refresh Form Date:", dateStr);
+  if (dateStr === lastDateStr) {
+    console.log("## Skipping Refresh Form Date, date are identical");
+    return;
+  }
+  lastDateStr = dateStr;
+  
   const { questionaryId, formKey } = navData;
   // -- content
   console.log();
