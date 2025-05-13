@@ -15,7 +15,7 @@ const patientBaseStreams = [
   {id: 'fertility-miscarriages', name: 'Miscarriages', parentId: 'fertility'},
   {id: 'fertility-traings', name: 'Trainings', parentId: 'fertility'},
   {id: 'fertility-cycles', name: 'Cycles', parentId: 'fertility'},
-  {id: 'fertility-cycles-charted-extimation', name: 'Cycles charted estimation', parentId: 'fertility-cycles'},
+  {id: 'fertility-cycles-charted-estimation', name: 'Cycles charted estimation', parentId: 'fertility-cycles'},
   {id: 'fertility-ttc-tta', name: 'Trying to conceive / Avoiding pregnancy', parentId: 'fertility'},
   // body
   {id: 'body', name: 'Body'},
@@ -24,7 +24,10 @@ const patientBaseStreams = [
   // vulva
   {id: 'body-vulva', name: 'Vulva', parentId: 'body'},
   {id: 'body-vulva-wetness', name: 'Vulva Wetness', parentId: 'body-vulva'},
-  {id: 'body-vulva-wetness-feeling', name: 'Vulva Wetness Feeling', parentId: 'body-vulva-wetness'}
+  {id: 'body-vulva-wetness-feeling', name: 'Vulva Wetness Feeling', parentId: 'body-vulva-wetness'},
+  {id: 'body-vulva-mucus', name: 'Vulva Mucus', parentId: 'body-vulva'},
+  {id: 'body-vulva-mucus-inspect', name: 'Vulva Mucus Inspect', parentId: 'body-vulva-mucus'},
+  {id: 'body-vulva-mucus-stretch', name: 'Vulva Mucus Stretch', parentId: 'body-vulva-mucus'}
 ];
 
 const patientBasePermissionsX = [
@@ -89,7 +92,7 @@ const formProfileContentX = [
     label: 'Nb of miscarriages',
   },
   {
-    streamId: 'fertility-cycles-charted-extimation',
+    streamId: 'fertility-cycles-charted-estimation',
     eventType: 'count/generic',
     type: 'number',
     label: 'Nb of charted cycles',
@@ -170,6 +173,29 @@ const formHistoricalContentB = [
       { value: 0, label: 'Dry' },
       { value: 1, label: 'Wet' },
       { value: 2, label: 'Very wet'}
+    ]
+  },
+  {
+    streamId: 'body-vulva-mucus-inspect',
+    eventType: 'vulva-mucus-inspect/v0',
+    type: 'select',
+    label: 'Cervical Fluid Inspect',
+    options: [
+      { value: 'clear', label: 'Clear' },
+      { value: 'creamy', label: 'Creamy' },
+      { value: 'dry-sticky', label: 'Dry & Sticky' },
+      { value: 'egg-white', label: 'Egg White' },
+    ]
+  },
+  {
+    streamId: 'body-vulva-mucus-stretch',
+    eventType: 'ratio/generic',
+    type: 'select',
+    label: 'Cervical Fluid Stretch',
+    options: [
+      { value: 0, label: 'No Strech' },
+      { value: 1, label: 'Short' },
+      { value: 2, label: 'Long'}
     ]
   }
 ]
