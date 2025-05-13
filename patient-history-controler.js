@@ -145,6 +145,9 @@ async function updateFormContent(formData) {
       fieldHTML += `</select>`;
     } else if (fieldType === "date") {
       fieldHTML += `<input type="date" id="${fieldId}" value="${fieldValue}" class="form-control"/>`;
+    } else if (fieldType === "checkbox") {
+      const checkedStr = fieldValue != '' ? 'checked' : '';
+      fieldHTML += `<input type="checkbox" id="${fieldId}" class="form-control" ${checkedStr}/>`;
     }
 
     document.getElementById("inputs-list").innerHTML += fieldHTML;
@@ -163,6 +166,8 @@ async function submitForm(formData, date) {
     // Store the value in the values object
     if (field.type === "date") {
       values[field.id] = formField.valueAsDate;
+    } else if (field.type === "checkbox") {
+      values[field.id] = formField.checked ? 'x' : '';
     } else {
       values[field.id] = formField.value.trim();
     }

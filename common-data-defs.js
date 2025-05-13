@@ -13,8 +13,10 @@ const patientBaseStreams = [
   // fertility
   {id: 'fertility', name: 'Fertility'},
   {id: 'fertility-miscarriages', name: 'Miscarriages', parentId: 'fertility'},
-  {id: 'fertility-traings', name: 'Trainings', parentId: 'fertility'},
+  {id: 'fertility-trainings', name: 'Trainings', parentId: 'fertility'},
   {id: 'fertility-cycles', name: 'Cycles', parentId: 'fertility'},
+  {id: 'fertility-cycles-start', name: 'New Cycle', parentId: 'fertility-cycles'},
+  {id: 'fertility-cycles-ovulation', name: 'Ovulation Day', parentId: 'fertility-cycles'},
   {id: 'fertility-cycles-charted-estimation', name: 'Cycles charted estimation', parentId: 'fertility-cycles'},
   {id: 'fertility-ttc-tta', name: 'Trying to conceive / Avoiding pregnancy', parentId: 'fertility'},
   // body
@@ -197,6 +199,12 @@ const formHistoricalContentB = [
       { value: 1, label: 'Short' },
       { value: 2, label: 'Long'}
     ]
+  },
+  {
+    streamId: 'fertility-cycles-start',
+    eventType: 'activity/plain',
+    type: 'checkbox',
+    label: 'New Cycle'
   }
 ]
 
