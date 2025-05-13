@@ -99,11 +99,13 @@ async function refreshDataTable(currentDateStr) {
       row.style.backgroundColor = '#D3D3D3'; // light grey
     } 
 
+    console.log('>> data', data);
+
     const cellDate = row.insertCell(-1);
     cellDate.innerHTML = `<A HREF="javascript:refreshClick('${data.dateStr}')">${data.dateStr}</A>`;
     for (const th of tableData.tableHeaders) {
       const cell = row.insertCell(-1);
-      const v = data[th.fieldId]?.value;
+      const v = data[th.fieldId]?.valueTxt;
       cell.innerHTML = v != null ? v : '' ;
     }
   }

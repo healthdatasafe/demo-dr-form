@@ -133,7 +133,9 @@ async function getFormExistingContent (form, date) {
     console.log('## getFormContent ' + i, e);
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
-      field.value = valueForField(event.content, field);
+      const valueAndTxt = valueAndTxtForField(event.content, field);
+      field.value = valueAndTxt.value;
+      field.valueTxt = valueAndTxt.txt;
       field.eventId = event.id; // will allow t track if the event is to be updated
     } 
   }
@@ -157,8 +159,10 @@ async function getHistoricalContent(questionaryId, formKey) {
       dateStr,
     };
     const fieldId = field.streamId + ':' + field.eventType;
+    const valueAndTxt = valueAndTxtForField(event.content, field);
     valuesByDateStr[dateStr][fieldId] = {
-      value: valueForField(event.content, field),
+      value: valueAndTxt.value,
+      valueTxt: valueAndTxt.txt,
       eventId: event.id
     }
   }
@@ -188,20 +192,34 @@ async function getHistoricalContent(questionaryId, formKey) {
   return { tableHeaders, valuesByDate };
 }
 
-function valueForField (eventContent, field) {
+function valueAndTxtForField (eventContent, field) {
   if (field.type === 'date' && eventContent != null ) {
     // convert the date to a Date object
     const date = new Date(eventContent);
     if (!isNaN(date)) {
-      return date.toISOString().split('T')[0]; // format YYYY-MM-DD
+      const dayStr = date.toISOString().split('T')[0];
+      return { value: dayStr, txt: dayStr }; // format YYYY-MM-DD
     } 
     console.error('## Error parsing date', eventContent);
-    return '';
+    return {value: '', txt: 'Error parsing date'};
+  }
+  if (field.type === 'select') {
+    let value = eventContent;
+    let txt = value;
+    if (field.eventType === 'ratio/generic') {
+      value = eventContent.value;
+    }
+
+    const selected = field.options.find((o) => ( o.value === value ));
+    if (selected) {
+      txt = selected?.label;
+    }
+    return { value, txt };
   }
   if (field.eventType === 'ratio/generic' && eventContent != null ) {
-    return eventContent.value;
+    return { value: eventContent.value, txt:  eventContent.value};
   }
-  return eventContent;
+  return { value: eventContent, txt: eventContent };
 }
 
 // ---------------- create / update data ---------------- //
