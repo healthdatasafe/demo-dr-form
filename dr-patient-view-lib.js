@@ -80,6 +80,12 @@ function getLineForEvent (event, questionaryId) {
       const selected = field.options.find((o) => ( o.value === line.value ));
       line.description = selected?.label;
     }
+    if (field.type === 'checkbox') {
+      if (event.type === 'activity/plain') {
+        line.description = 'X';
+        line.value = 'x';
+      }
+    }
   }
   return line;
 }
