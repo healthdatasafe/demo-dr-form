@@ -61,12 +61,11 @@ async function refreshAll(dateStr) {
 
   updateFormContent(formData);
   document.getElementById("submit-button-list").onclick = function () {
-    submitForm(formData, dateStr);
+    submitForm(formData, new Date(dateStr));
   };
 }
 
 async function refreshDataTable(currentDateStr) {
-  console.log('>> refreshTable', currentDateStr);
   let currentValue = {};
   const { questionaryId, formKey } = navData;
   const tableData = await patientLib.getHistoricalContent(

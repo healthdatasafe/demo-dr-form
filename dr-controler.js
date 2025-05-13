@@ -112,7 +112,6 @@ async function setPatientList(questionaryId) {
   const patientsData = [];
   for (const patient of Object.values(patients)) {
     const row = table.insertRow(-1);
-    console.log('>> patient', patient);
 
     const cellStatus = row.insertCell(-1);
     cellStatus.innerHTML = patient.status;

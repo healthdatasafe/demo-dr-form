@@ -10,8 +10,17 @@ import { exportCSVFile } from "./exportToCSV.js";
  */
 
 
+let infos;
 window.onload = async (event) => {
-  refresh();
+  const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
+  infos = drPatientLib.setRefresh(patientApiEndpoint, questionaryId, refresh)
+   // -- home button
+   document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
+
+   // -- set patient Id
+   const username = infos.user.username;
+   document.getElementById('patient-label').innerHTML = username;
+
 }
 
 const tableHeaders = {
@@ -28,17 +37,7 @@ const downloadHeaders = Object.assign({
   eventType: 'Event Type'
 }, tableHeaders);
 
-async function refresh () {
-  const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
-  const { infos, lines }  = await drPatientLib.getPatientData(patientApiEndpoint, questionaryId);
-  console.log('>> zz', infos);
-  // -- home button
-  document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
-
-  // -- set patient Id
-  const username = infos.user.username;
-  document.getElementById('patient-label').innerHTML = username;
-
+async function refresh (lines) {
   // -- set download button
   document.getElementById('button-download').onclick = () => {
     exportCSVFile(downloadHeaders, lines, username + '-' + questionaryId);
@@ -46,6 +45,8 @@ async function refresh () {
 
   // -- update table
   const table = document.getElementById('patient-data-table');
+  table.innerHTML = '';
+  
   const headerRow = table.insertRow(-1);
   for (const thLabel of Object.values(tableHeaders)) {
     const headerCell = document.createElement("TH");
@@ -53,7 +54,6 @@ async function refresh () {
     headerRow.appendChild(headerCell);
   }
   for (const line of lines) {
-    console.log('>> line', line);
     const row = table.insertRow(-1);
     for (const key of Object.keys(tableHeaders)) {
       const cell = row.insertCell(-1);

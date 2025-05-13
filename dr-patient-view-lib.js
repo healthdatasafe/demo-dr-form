@@ -2,8 +2,30 @@
 import { dataDefs } from './common-data-defs.js';
 
 export const drPatientLib = {
-  getPatientData
+  setRefresh
 }
+
+let connection;
+async function setRefresh(patientApiEndoint, questionaryId, refreshCallBack) {
+  connection = new Pryv.Connection(patientApiEndoint);
+  const infos = await connection.accessInfo();
+
+  async function doRefresh () {
+    const lines = await getPatientData(questionaryId); 
+    refreshCallBack(lines);
+  }
+
+  await connection.socket.open();
+  connection.socket.on('eventsChanged', async () => {
+    console.log('>> refresh event');
+    await doRefresh();
+  });
+
+  // do it once
+  doRefresh();
+  return infos;
+}
+
 
 // prepare data for easy lookup 
 // map streamId/EventType with form data
@@ -19,19 +41,17 @@ for (const [questionaryId, questionary] of Object.entries(dataDefs.questionnaire
     }
   }
 }
-console.log('>> eventMapByQuestionnary', eventMapByQuestionnary);
 
-async function getPatientData (patientApiEndoint, questionaryId) {
+async function getPatientData (questionaryId) {
   const patientData = [];
   const queryParams = { limit: 10000};
   function forEachEvent(event) {
     patientData.push(getLineForEvent (event, questionaryId));
   }
 
-  const connection = new Pryv.Connection(patientApiEndoint);
-  const infos = await connection.accessInfo();
+  
   await connection.getEventsStreamed(queryParams, forEachEvent);
-  return { infos, lines: patientData };
+  return patientData;
 }
 
 
@@ -46,7 +66,6 @@ function getLineForEvent (event, questionaryId) {
   }
   
   const field = eventMapByQuestionnary[questionaryId][event.streamId + ':' + event.type];
-  console.log('>> field', field, event);
   if (field) {
     Object.assign(line, field);
     if (field.type === 'date') {
@@ -54,7 +73,10 @@ function getLineForEvent (event, questionaryId) {
     }
     if (field.type === 'select') {
       line.value = event.content;
-      
+      if (field.eventType === 'ratio/generic') {
+        line.value = event.content.value;
+      }
+
       const selected = field.options.find((o) => ( o.value === line.value ));
       line.description = selected?.label;
     }
