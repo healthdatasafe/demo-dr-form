@@ -17,18 +17,30 @@ window.onload = async (event) => {
   const formTitle = document.getElementById("card-questionnary-details-title");
   formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
   const dateInput = document.getElementById("form-date");
-  dateInput.value = new Date().toISOString().split("T")[0]; // format YYYY-MM-DD
+  dateInput.value =  dateToDayStr(new Date()); 
   dateInput.onfocusout = function () {
     const date = dateInput.valueAsDate;
     console.log("## Focus Out Date", date);
-    refreshAll(date);
+    refreshAll(dateToDayStr(date));
   };
 
-  refreshAll(dateInput.valueAsDate);
+  refreshAll(dateToDayStr(dateInput.valueAsDate));
 };
 
-async function refreshAll(date) {
-  console.log("## Refresh Form Date:", date);
+function dateToDayStr(date) {
+  return date.toISOString().split("T")[0]; // format YYYY-MM-DD
+}
+
+// expose refreshAll for date links
+window.refreshClick = refreshClick;
+function refreshClick(dateStr) {
+  const dateInput = document.getElementById("form-date");
+  dateInput.value =  dateStr; 
+  refreshAll(dateStr);
+}
+
+async function refreshAll(dateStr) {
+  console.log("## Refresh Form Date:", dateStr);
   const { questionaryId, formKey } = navData;
   // -- content
   console.log();
@@ -36,7 +48,7 @@ async function refreshAll(date) {
     questionaryId,
     formKey
   );
-  const tableRow = await refreshDataTable(date);
+  const tableRow = await refreshDataTable(dateStr);
   console.log('## tableRow', tableRow);
 
   // HACKY WAY TO ADD EXISTNG CONTENT SHOULD BE DONE IN LIB
@@ -49,12 +61,12 @@ async function refreshAll(date) {
 
   updateFormContent(formData);
   document.getElementById("submit-button-list").onclick = function () {
-    submitForm(formData, date);
+    submitForm(formData, dateStr);
   };
 }
 
-async function refreshDataTable(date) {
-  const currentDateStr = date.toISOString().split("T")[0]; // format YYYY-MM-DD;
+async function refreshDataTable(currentDateStr) {
+  console.log('>> refreshTable', currentDateStr);
   let currentValue = {};
   const { questionaryId, formKey } = navData;
   const tableData = await patientLib.getHistoricalContent(
@@ -78,11 +90,11 @@ async function refreshDataTable(date) {
     const row = table.insertRow(-1);
     if (currentDateStr === data.dateStr) {
       currentValue = data;
-      row.style.backgroundColor = 'grey';
+      row.style.backgroundColor = '#D3D3D3'; // light grey
     } 
 
     const cellDate = row.insertCell(-1);
-    cellDate.innerHTML = data.dateStr;
+    cellDate.innerHTML = `<A HREF="javascript:refreshClick('${data.dateStr}')">${data.dateStr}</A>`;
     for (const th of tableData.tableHeaders) {
       const cell = row.insertCell(-1);
       const v = data[th.fieldId]?.value;
