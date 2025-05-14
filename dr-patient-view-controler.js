@@ -1,5 +1,6 @@
 import { drPatientLib  } from "./dr-patient-view-lib.js";
 import { exportCSVFile } from "./exportToCSV.js";
+import { patientLib } from "./patient-lib.js";
 /**
  * Based on 
  * - drApiConnecion
@@ -14,18 +15,21 @@ let infos;
 window.onload = async (event) => {
   const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
   infos = await drPatientLib.setRefresh(patientApiEndpoint, questionaryId, refresh)
-   // -- home button
-   document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
+  // -- home button
+  document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
 
-   // -- set patient Id
-   const username = infos.user.username;
-   document.getElementById('patient-label').innerHTML = username;
-
+  // - form title
+  const formTitle = document.getElementById('card-questionnary-details-title');
+  formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
+  
+  // -- set patient Id
+  const username = infos.user.username;
+  document.getElementById('patient-label').innerHTML = username;
 }
 
 const tableHeaders = {
   time: 'Date',
-  formLabel: 'Questionnary',
+  formLabel: 'Set',
   formType: 'Type',
   label: 'Label',
   value: 'Value',
