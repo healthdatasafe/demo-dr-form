@@ -25,33 +25,30 @@ async function stateChange(state) {
   }
 }
 
+const questionnaryButtons = {};
 async function setQuestionnaries() {
-  const select = document.getElementById("select-questionnary");
-  const optionNull = document.createElement("option");
-  optionNull.text = '---';
-  optionNull.value = '';
-  select.add(optionNull);
+  // -- on load
+  const selectedQuestionnary = getQuestionnaryFromUrl();
+  
+
+  const tbody = document.getElementById('questionnary-table').getElementsByTagName('tbody')[0];
+  // clear previous content
+  while (tbody.firstChild) {
+    tbody.removeChild(tbody.firstChild);
+  }
 
   const quests = await drLib.getQuestionnaires();
   for (const [key, value] of Object.entries(quests)) {
-    const option = document.createElement("option");
-    option.text = value.title;
-    option.value = key;
-    select.add(option);
-  }
- 
-  // -- on change
-  select.onchange = function () {
-    if (select.value === '') {
-      showQuestionnary(null);
-      return;
-    }
-    showQuestionnary(select.value);
-  }
-  // -- on load
-  const selectedQuestionnary = getQuestionnaryFromUrl();
+    const row = tbody.insertRow(-1);
+    const cellQuestionnary = row.insertCell(-1);
+    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${value.title}</button>`;
+    questionnaryButtons[key] = cellQuestionnary.getElementsByTagName('button')[0];
+    cellQuestionnary.onclick = function () {
+      showQuestionnary(key);
+    };
+  };
+
   if (selectedQuestionnary) {
-    select.value = selectedQuestionnary;
     showQuestionnary(selectedQuestionnary);
   }
 }
@@ -63,7 +60,15 @@ function getQuestionnaryFromUrl() {
   return questionaryId
 }
 
+function highlightQuestionnaryButton(questionaryId) {
+  for (const [key, button] of Object.entries(questionnaryButtons)) {
+    const color =  (questionaryId === key) ? "LightSeaGreen" : 'lightgrey';
+    button.style.backgroundColor = color;
+  }
+}
+
 async function showQuestionnary(questionaryId) {
+  highlightQuestionnaryButton(questionaryId);
   console.log('## showQuestionnary', questionaryId);
   if (questionaryId == null) {
     document.getElementById('questionnary-view').style.visibility = 'hidden';

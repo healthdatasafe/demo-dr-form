@@ -40,11 +40,12 @@ function getRequestFrormApiEndPoint() {
 }
 
 // --------- Update form list --------- //
+const questionnaryRows = {};
 async function showFormList(formsInfo) {
   console.log('## showFormList', formsInfo);
 
   // -- table
-  const tbody = document.getElementById('questionnary-table').getElementsByTagName('tbody')[0];;
+  const tbody = document.getElementById('questionnary-table').getElementsByTagName('tbody')[0];
 
   // clear previous content
   while (tbody.firstChild) {
@@ -57,6 +58,9 @@ async function showFormList(formsInfo) {
     const cellQuestionnary = row.insertCell(-1);
     const formTitle = patientLib.getFormTitle(formInfo.questionaryId);
     cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${formTitle}</button>`;
+    questionnaryRows[formInfo.questionaryId + ':' + formInfo.drUserId] = {
+      row, button: cellQuestionnary.getElementsByTagName('button')[0]
+    }
     cellQuestionnary.onclick = function () {
       showFormDetails(formInfo);
     };
@@ -69,8 +73,18 @@ async function showFormList(formsInfo) {
   }
 }
 
+function highlightQuestionnaryButton(buttonKey) {
+  for (const [key, entry] of Object.entries(questionnaryRows)) {
+    const colorButton =  (buttonKey === key) ? "LightSeaGreen" : 'lightgrey';
+    const colorRow =  (buttonKey === key) ? 'lightgrey' : '';
+    entry.button.style.backgroundColor = colorButton;
+    entry.row.style.backgroundColor = colorRow;
+  }
+}
+
 // ----------- Show form details ----------- //
 async function showFormDetails(formInfo) {
+  highlightQuestionnaryButton(formInfo?.questionaryId + ':' + formInfo?.drUserId);
   const show = !!formInfo;
   document.getElementById('card-questionnary-details-nothing').style.display = show ? 'none' : 'block';
   document.getElementById('card-questionnary-details-something').style.display= show ? 'block' : 'none';

@@ -36,7 +36,15 @@
       </div>
     </div>
     <div class="card" id="data-view" style="visibility: hidden;">
-      Select a questionnary: <select id="select-questionnary" class="form-control"></select>
+      <table id='questionnary-table' class="table">
+        <thead>
+          <th> Select a questionnary:</th>
+        </thead>
+        <tbody>
+          <!-- will be filled by getQuestionaires-->
+        </tbody>
+      </table>
+      
       <div id="questionnary-view">
         <div class="card">
           <h2 class="card-title">Sharing link</h2>
