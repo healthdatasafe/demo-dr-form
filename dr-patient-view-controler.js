@@ -1,5 +1,5 @@
 import { drPatientLib  } from "./dr-patient-view-lib.js";
-import { exportCSVFile } from "./exportToCSV.js";
+import { exportXLSFile } from './exporToXLS.js';
 import { patientLib } from "./patient-lib.js";
 /**
  * Based on 
@@ -12,6 +12,8 @@ import { patientLib } from "./patient-lib.js";
 
 
 let infos;
+let username;
+let qId;
 window.onload = async (event) => {
   const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
   infos = await drPatientLib.setRefresh(patientApiEndpoint, questionaryId, refresh)
@@ -22,8 +24,10 @@ window.onload = async (event) => {
   const formTitle = document.getElementById('card-questionnary-details-title');
   formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
   
+  qId = questionaryId;
+
   // -- set patient Id
-  const username = infos.user.username;
+  username = infos.user.username;
   document.getElementById('patient-label').innerHTML = username;
 }
 
@@ -43,8 +47,8 @@ const downloadHeaders = Object.assign({
 
 async function refresh (lines) {
   // -- set download button
-  document.getElementById('button-download').onclick = () => {
-    exportCSVFile(downloadHeaders, lines, username + '-' + questionaryId);
+  document.getElementById('button-download').onclick = async () => {
+    await exportXLSFile(downloadHeaders, lines, username + '-' + qId);
   };
 
   // -- update table

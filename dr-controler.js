@@ -1,5 +1,5 @@
 import { drLib } from './dr-lib.js';
-import { exportCSVFile } from './exportToCSV.js';
+import { exportXLSFile } from './exporToXLS.js';
 
 /**
  * UI management code. 
@@ -77,8 +77,8 @@ async function showQuestionnary(questionaryId) {
 
   setSharingLink(questionaryId);
   const {headers, patientsData} = await setPatientList(questionaryId);
-  document.getElementById('button-download').onclick = () => {
-    exportCSVFile(headers, patientsData, 'patients');
+  document.getElementById('button-download').onclick = async () => {
+    await exportXLSFile(headers, patientsData, 'patients');
   }
   document.getElementById('questionnary-view').style.display = 'block';
 }

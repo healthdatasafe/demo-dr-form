@@ -5,7 +5,7 @@ function fenceLine(items) {
     return '"' + items.map(i => i.replaceAll('"','\'\'')).join('","') + '"\r\n';
 }
 
-export function exportCSVFile(headers, lines, fileTitle) {
+export async function exportCSVFile(headers, lines, fileTitle) {
   let csv = fenceLine(Object.values(headers));
 
   for (const line of lines) {
