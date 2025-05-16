@@ -15,12 +15,12 @@ window.onload = (event) => {
 
 function stateChange(state) {
   if (state === 'loggedIN') {
-    document.getElementById('please-login').style.visibility = 'hidden';
-    document.getElementById('card-content').style.visibility = 'visible';
+    document.getElementById('please-login').style.display = 'none';
+    document.getElementById('card-content').style.display = 'block';
     refresh();
   } else {
-    document.getElementById('please-login').style.visibility = 'visible';
-    document.getElementById('card-content').style.visibility = 'hidden';
+    document.getElementById('please-login').style.display = 'block';
+    document.getElementById('card-content').style.display = 'none';
   }
 }
 

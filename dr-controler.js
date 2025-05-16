@@ -15,13 +15,13 @@ window.onload = (event) => {
 
 async function stateChange(state) {
   if (state === 'loggedIN') {
-    document.getElementById('please-login').style.visibility = 'hidden';
-    document.getElementById('data-view').style.visibility = 'visible';
+    document.getElementById('please-login').style.display = 'none';
+    document.getElementById('data-view').style.display = 'block';
     setQuestionnaries();
 
   } else {
-    document.getElementById('please-login').style.visibility = 'visible';
-    document.getElementById('data-view').style.visibility = 'hidden';
+    document.getElementById('please-login').style.display = 'block';
+    document.getElementById('data-view').style.display = 'none';
   }
 }
 
@@ -71,7 +71,7 @@ async function showQuestionnary(questionaryId) {
   highlightQuestionnaryButton(questionaryId);
   console.log('## showQuestionnary', questionaryId);
   if (questionaryId == null) {
-    document.getElementById('questionnary-view').style.visibility = 'hidden';
+    document.getElementById('questionnary-view').style.display = 'none';
     return;
   }
 
@@ -80,7 +80,7 @@ async function showQuestionnary(questionaryId) {
   document.getElementById('button-download').onclick = () => {
     exportCSVFile(headers, patientsData, 'patients');
   }
-  document.getElementById('questionnary-view').style.visibility = 'visible';
+  document.getElementById('questionnary-view').style.display = 'block';
 }
 
 const rowItems = ['name', 'surname', 'nationality'];
