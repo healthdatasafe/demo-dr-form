@@ -18,7 +18,6 @@ async function stateChange(state) {
     document.getElementById('please-login').style.display = 'none';
     document.getElementById('data-view').style.display = 'block';
     setQuestionnaries();
-
   } else {
     document.getElementById('please-login').style.display = 'block';
     document.getElementById('data-view').style.display = 'none';
