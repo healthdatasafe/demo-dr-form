@@ -148,6 +148,10 @@ async function setSharingLink(questionaryId) {
   const formApiEndpoint = await drLib.getSharingToken(questionaryId);
   const sharingLink = patientURL + '?formApiEndpoint=' + formApiEndpoint;
   const sharingMailBody = 'Hello,\n\nI am sending you a link to fill out a form.\nPlease click on the link below to access the form: \n\n' + sharingLink + '\n\nBest regards,\nYour Doctor';
-  const sharingLinkHTML = `<A HREF="mailto:?subject=Invitation&body=${encodeURI(sharingMailBody)}">Send by email</A> - ${sharingLink}`;
+  let sharingLinkHTML = `<A HREF="mailto:?subject=Invitation&body=${encodeURI(sharingMailBody)}">Send by email</A>`;
+  // add copy link
+  sharingLinkHTML += ` - <A HREF="#" onclick="navigator.clipboard.writeText('${sharingLink}'); alert('Copied the sharing link to clipboard')">Copy link to clipboard</A>`;
+  
+  
   document.getElementById('sharing-link').innerHTML = sharingLinkHTML;
 }

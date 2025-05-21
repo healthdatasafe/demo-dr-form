@@ -307,14 +307,16 @@ async function handleFormSubmit (formData, values, date) {
       continue;
     } 
     // create a new event
+    const eventData = {
+      streamId: streamId,
+      type: eventType,
+      content: value
+    };
+    if (date) eventData.time = date.getTime() / 1000;
+
     apiCalls.push({
       method: 'events.create',
-      params: {
-        streamId: streamId,
-        type: eventType,
-        content: value,
-        time: date ? date.getTime() / 1000 : null
-      }
+      params: eventData
     });
   }
   if (apiCalls.length === 0) {
