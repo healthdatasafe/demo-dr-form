@@ -45,7 +45,7 @@ Le Health Data Safe est une initiative à but non lucratif visant la protection 
     * First Name *
     * Last Name *
     * Maid name 
-    * Nationality
+    * Country
     * Date of birth  *
     * City
     * Sexe

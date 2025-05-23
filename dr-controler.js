@@ -82,7 +82,6 @@ async function showQuestionnary(questionaryId) {
   document.getElementById('questionnary-view').style.display = 'block';
 }
 
-const rowItems = ['name', 'surname', 'nationality'];
 /**
  * Update the patient list
  */

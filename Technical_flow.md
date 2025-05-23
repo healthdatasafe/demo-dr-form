@@ -34,7 +34,7 @@ They contains personal data with the following streams
 - profile
 	- profile-name: Name / Surname 
 		- event of type "contact/name-surname" & "contact/maiden-name" or "contact/vcard"
-	- profile-nationality: - event of type "contact/nationality"
+	- profile-country: - event of type "contact/country"
 	- profile-date-of-birth: - event of type "date/iso-8601"
 	- profile-location: - event of type (to be discussed) "contact/vcard" or "location/city"
 	- profile-sex: - event of type "attributes/biological-sex"

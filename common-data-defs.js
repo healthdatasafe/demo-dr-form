@@ -3,7 +3,7 @@ const patientBaseStreams = [
   // profile
   {id: 'profile', name: 'Profile'},
   {id: 'profile-name', name: 'Name', parentId: 'profile'},
-  {id: 'profile-nationality', name: 'Nationality', parentId: 'profile'},
+  {id: 'profile-country', name: 'Country', parentId: 'profile'},
   {id: 'profile-date-of-birth', name: 'Date of Birth', parentId: 'profile'},
   {id: 'profile-location', name: 'Location', parentId: 'profile'},
   {id: 'profile-sex', name: 'Sex', parentId: 'profile'},
@@ -70,10 +70,10 @@ const formProfileContentBase = [
 const formProfileContentX = [
   ...formProfileContentBase,
   {
-    streamId: 'profile-nationality',
-    eventType: 'contact/nationality',
+    streamId: 'profile-address',
+    eventType: 'contact/country',
     type: 'text',
-    label: 'Nationality',
+    label: 'Country',
   },
   {
     streamId: 'profile-sex',
