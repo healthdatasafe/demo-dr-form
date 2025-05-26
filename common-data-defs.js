@@ -3,7 +3,7 @@ const patientBaseStreams = [
   // profile
   {id: 'profile', name: 'Profile'},
   {id: 'profile-name', name: 'Name', parentId: 'profile'},
-  {id: 'profile-country', name: 'Country', parentId: 'profile'},
+  {id: 'profile-address', name: 'Country', parentId: 'profile'},
   {id: 'profile-date-of-birth', name: 'Date of Birth', parentId: 'profile'},
   {id: 'profile-location', name: 'Location', parentId: 'profile'},
   {id: 'profile-sex', name: 'Sex', parentId: 'profile'},
