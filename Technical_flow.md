@@ -18,9 +18,9 @@ Streams structure of a Dr Account
 	- patients-validated: contains validated patient 
 		(credentials are moved from Inbox in this stream)
 - Forms
-	- Questionnary A
-	- Questionnary B
-	- Questionnary ...
+	- Questionnaire A
+	- Questionnaire B
+	- Questionnaire ...
 
 ```
 
@@ -84,13 +84,13 @@ This will allow the Patient's app to publish it's authorization to the Dr's Acco
 
 ##### Flow Patient Web App
 
-The link to the patient webApp contains in its query the Dr's apiEndpoint
+The link to the patient webApp contains in its query the Doctor's apiEndpoint
 
-1- The WebApp query HDS to figure out which questionnary to display (hardcode 1st version)
+1- The WebApp query HDS to figure out which questionnaire to display (hardcode 1st version)
 
 2- The WebApp present the description of HDS, the recipient of the form (the Dr) and propose to register or login in
 
-3- After Log-In the App recieves and API endpoint 
+3- After Log-In the App receives and API endpoint
 
 - The app check the state of this form with the latest event in `demo-dr-form` stream event-type `demo-dr-form-state/questionnary-x`
 - If this is the first time the use logs-in with this form the WebApp creates  and `sharing` api-endpoint for the Dr and publish it in his `inbox`  stream
