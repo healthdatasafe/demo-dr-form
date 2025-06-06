@@ -52,13 +52,13 @@ const formProfileContentBase = [
     streamId: 'profile-name',
     eventType: 'contact/name',
     type: 'text',
-    label: 'Name',
+    label: 'First Name',
   },
   {
     streamId: 'profile-name',
     eventType: 'contact/surname',
     type: 'text',
-    label: 'Surname',
+    label: 'Last Name',
   },
   {
     streamId: 'profile-date-of-birth',
@@ -86,19 +86,19 @@ const formProfileContentX = [
     streamId: 'family-children',
     eventType: 'count/generic',
     type: 'number',
-    label: 'Nb of children',
+    label: '# of children',
   },
   {
     streamId: 'fertility-miscarriages',
     eventType: 'count/generic',
     type: 'number',
-    label: 'Nb of miscarriages',
+    label: '# of miscarriages',
   },
   {
     streamId: 'fertility-cycles-charted-estimation',
     eventType: 'count/generic',
     type: 'number',
-    label: 'Nb of charted cycles',
+    label: '# of charted cycles',
   }
 ];
 
@@ -106,25 +106,25 @@ const formHistoricalContentX = [
   {
     streamId: 'fertility-ttc-tta',
     eventType: 'fertility-intention/ttc-tta',
-    label: 'Trying to conceive or avoid pregnancy',
+    label: 'Goal: Trying to conceive or avoid pregnancy',
     type: 'select',
     parseValueToNum: true,
     options: [
       {
         value: 0,
-        label: 'TTA - Not taking risks.  Would take all available measures to end a pregnancy.'
+        label: 'TTA - Not taking risks. Would take all available measures to end a pregnancy.'
       },
       {
         value: 1,
-        label: 'TTA - Not taking risks.  Would strongly consider placing baby for adoption.'
+        label: 'TTA - Not taking risks. Would strongly consider placing baby for adoption.'
       },
       {
         value: 2,
-        label: 'TTA - Not taking risks.  Would need some time, maybe counseling. Ultimately keeping the pregnancy.'
+        label: 'TTA - Not taking risks. Would need some time, maybe counseling. Ultimately keeping the pregnancy.'
       },
       {
         value: 4,
-        label: 'TTA - Not taking risks.  Currently content with family size but a surprise pregnancy would be welcome.'
+        label: 'TTA - Not taking risks. Currently content with family size but a surprise pregnancy would be welcome.'
       },
       {
         value: 5,
@@ -148,7 +148,7 @@ const formHistoricalContentX = [
       },
       {
         value: 10,
-        label: 'TTC - “ Seriously TTC” Intentional intercourse every cycle. Would pursue any/ALL fertility treatments or procedures if needed.'
+        label: 'TTC - “Seriously TTC” Intentional intercourse every cycle. Would pursue any/ALL fertility treatments or procedures if needed.'
       }
     ]
   },
