@@ -106,7 +106,7 @@ const formHistoricalContentX = [
   {
     streamId: 'fertility-ttc-tta',
     eventType: 'fertility-intention/ttc-tta',
-    label: 'Trying to conceive / Avoiding pregnancy',
+    label: 'Trying to conceive or avoid pregnancy',
     type: 'select',
     parseValueToNum: true,
     options: [
