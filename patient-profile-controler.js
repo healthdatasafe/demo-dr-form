@@ -35,7 +35,7 @@ async function refreshForm () {
 // ------- Form -------- //
 
 /**
- * Take the from content from the definition and actual values and create the HTML
+ * Take the form content from the definition and actual values and create the HTML
  */
 async function updateFormContent(formData) {
   console.log('Form content:', formData);
@@ -63,8 +63,21 @@ async function updateFormContent(formData) {
       fieldHTML += `</select>`;
     } else if (fieldType === 'date') {
       fieldHTML += `<input type="date" id="${fieldId}" value="${fieldValue}" class="form-control"/>`;
+    } else if (fieldType === "checkbox") {
+      const checkedStr = fieldValue != '' ? 'checked' : '';
+      fieldHTML += `<input type="checkbox" id="${fieldId}" class="form-control" ${checkedStr}/>`;
+    } else if (fieldType === "section") {
+      fieldHTML += `<h3 class="card-title">${fieldLabel}</h3>`;
+    } else if (fieldType === "total") {
+      const sectionTotal = formData.filter(
+        (x) => (x.section === formField.section && x.type === "checkbox" && x.formField.value != null)
+      ).reduce(
+        (acc, cur) => acc + curr.multiplier,
+        0
+      );
+      fieldHTML += `<h3 class="card-title">${fieldLabel}: ${sectionTotal}</h3>`;
     }
-   
+
     document.getElementById('inputs-list').innerHTML += fieldHTML;
   }
 }
