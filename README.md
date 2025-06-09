@@ -8,7 +8,7 @@ This is a pure vanilla / JS app
 - *-lib.js may give inspiration for a future "real" app
 
 To develop locally, install `node.js` and use `backloop.dev`
-- Install backlopp.dev with `npm install -g backloop.dev` 
+- Install backloop.dev with `npm install -g backloop.dev` 
 - Run `backloop.dev ./` from `demo-dr-form` directory
 - Open `https://whatever.backloop.dev:4443/` 
 
@@ -21,13 +21,13 @@ From this link the patient:
 - Sees a short presentation of HDS including a link to the HDS web site for more details.
 - Can register for HDS or sign in
 
-When signed in the patient sees a form to complete. If the patient is returning to the form he can update existing data.
+When signed in, the patient sees a form to complete. If the patient is returning to the form, he can update existing data.
 
 - As an opt-in the patient can allow HDS to access non-medical data in order to present HDS concepts and capabilities during patient webinars.
 
 The patient also has a page to see who has or had access to his data.
 
-The doctor has a page where he can see individuals' data and aggregated data and export it.
+The doctor has a page where he can see individuals' data, aggregate data and export it.
 
 ## Logic drafting
 
