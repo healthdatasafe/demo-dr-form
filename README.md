@@ -1,6 +1,17 @@
 # demo-dr-form
 Demonstrator for Dr requested data with Form
 
+## Dev 
+
+This is a pure vanilla / JS app 
+- *.html & *-controler.js files are not designed to be reused
+- *-lib.js may give inspiration for a future "real" app
+
+To develop locally, install `node.js` and use `backloop.dev`
+- Install backlopp.dev with `npm install -g backloop.dev` 
+- Run `backloop.dev ./` from `demo-dr-form` directory
+- Open `https://whatever.backloop.dev:4443/` 
+
 ## Context
 
 A doctor sends a link to a patient. 
@@ -10,20 +21,20 @@ From this link the patient
 - Sees a short presentation of HDS including a link to HDS web site for more details. 
 - Can register to HDS or Sign-in 
 
-When signed in the patient sees a from to complete. If the patient is returning to the form he can update exsiting data.
+When signed in, the patient sees a from to complete. If the patient is returning to the form he can update existing data.
 
-- As an opt-in the patient can allow HDS to access non medical data in order to present HDS concept and capabilities during patient webinars.
+- As an opt-in the patient can allow HDS to access non-medical data in order to present HDS concept and capabilities during patient webinars.
 
 The patient also has a page to see who has or had access to his data. 
 
-The doctor has a page where he can see individual's data and aggregated data and export it
+The doctor has a page where he can see individual's data and aggregate data and export it
 
 ## Logic drafting 
 
 Based on [Pryv.io](https://api.pryv.com)  
 
-- Dr has an HDS "controlling account" where the credentials to access to patient's data will be kept 
-- The link sent to patient contains the necessary credentials to 
+- Dr has an HDS "controlling account" where the credentials to access the patient's data will be kept 
+- The link sent to the patient contains the necessary credentials to 
   - Get the list of specific questions (for the doctor)
   - Allow patients to post credentials to access their data 
 
