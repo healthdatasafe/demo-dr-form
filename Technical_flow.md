@@ -1,30 +1,29 @@
-First version 
+First version
 
-## Dr Account
+## Doctor Account
 
-Dr has an HDS account to 
+A doctor has an HDS account to:
 
 1. Collect the authorization to access data by patients.
-2. Define forms (will be done in a second steps)
-   - The forms content should be encoded in JSON providing the necessary information for the WebApplication for patient give information on the data collected and provide from to the patient.
-   - In the First demo release, the form will be hard-coded in the App.
+2. Define forms (will be done in a later step)
+   - The forms content should be encoded in JSON providing the necessary information for the patient web application to give information on the data collected and provided by the patient.
+   - In the first demo release, the form will be hard-coded in the app.
 
 ```
-Streams structure of a Dr Account
+Streams structure of a doctor account
 - patients
-	- patients-inbox: where new patients are posting 
-		their credentials to access the data. 
+	- patients-inbox: where new patients are posting
+		their credentials to access the data.
 		For the demo this may be sufficient
-	- patients-validated: contains validated patient 
+	- patients-validated: contains validated patient
 		(credentials are moved from Inbox in this stream)
 - Forms
 	- Questionnaire A
 	- Questionnaire B
 	- Questionnaire ...
-
 ```
 
-### Patient accounts
+### Patient Accounts
 
 They contains personal data with the following streams
 
@@ -32,7 +31,7 @@ They contains personal data with the following streams
 
 ```
 - profile
-	- profile-name: Name / Surname 
+	- profile-name: First name / Last name
 		- event of type "contact/name-surname" & "contact/maiden-name" or "contact/vcard"
 	- profile-address: - event of type "contact/country"
 	- profile-date-of-birth: - event of type "date/iso-8601"
@@ -43,13 +42,13 @@ They contains personal data with the following streams
 - fertility
 	- fertility-miscarriages: events of type "count/generic"
 	- awarness-training: events of type "training/fabm-v1"
-			Event or streams content to be defined (see bellow)
+			Event or streams content to be defined (see below)
 	- fertitity-cycles
 		- fertitity-cycles-charted-estimation: "generic/count"
-  - ttc-tta: "fertility-intention/ttc-tta" (see bellow)
+  - ttc-tta: "fertility-intention/ttc-tta" (see below)
 - body
-	- body-height: -event of type "length/*" meters or ...
-	- body-weigth: -event of type "mass/*" kg or ...
+	- body-height: - event of type "length/*" meters or ...
+	- body-weigth: - event of type "mass/*" kg or ...
 - demo-dr-form: (stream to track states and usage of this app)
 	- inbox
 	- accepted
@@ -58,41 +57,41 @@ They contains personal data with the following streams
 
 ##### Tracking fertility awareness contents
 
-Here we have the possibilty to create either 1 specific event type containing a string with the method or a stream per method and add more information afterwards. As this is a prototype, we'll have to discuss what's the easiest implementation considering Front-end perspective. 
+Here we have the possibility to create either 1 specific event type containing a string with the method or a stream per method and add more information afterwards. As this is a prototype, we'll have to discuss what's the easiest implementation considering the frontend perspective.
 
 ##### Tracking fertility intention
 
-Create an event type of `fertility-intention/ttc-tta`  based on https://fertilityawarenessmethodofbirthcontrol.com/fertility-intentions-scale/
-
+Create an event type of `fertility-intention/ttc-tta` based on https://fertilityawarenessmethodofbirthcontrol.com/fertility-intentions-scale/
 
 
 ### Technical flow
 
 #### **Requirements** 
 
-For each form, an `apiEndpoint` is created upfront with the following credentials
-*For the demo, this will be hand made, in the future, this will be created from Dr's FrontEnd*
+For each form, an `apiEndpoint` is created up-front with the following credentials
 
-``` 
+*For the demo, this will be hand made; in the future, this will be created from the doctor's frontend*
+
+```
 [
 	{streamId: "patients-inbox", level: "create-only"},
 	{streamId: "questionnary-x", level: "read"}
 ]
 ```
 
-This will allow the Patient's app to publish it's authorization to the Dr's Account 
+This will allow the patient's app to publish its authorization to the doctor's account.
 
-##### Flow Patient Web App
+##### Patient web app flow
 
-The link to the patient webApp contains in its query the Doctor's apiEndpoint
+The link to the patient web app contains in its query the doctor's apiEndpoint.
 
-1- The WebApp query HDS to figure out which questionnaire to display (hardcode 1st version)
+1- The web app queries HDS to figure out which questionnaire to display (hardcoded in the 1st version)
 
-2- The WebApp present the description of HDS, the recipient of the form (the Dr) and propose to register or login in
+2- The web app presents the description of HDS, the recipient of the form (the doctor), and prompts to either register or login in
 
-3- After Log-In the App receives and API endpoint
+3- After log-in the app receives an API endpoint
 
-- The app check the state of this form with the latest event in `demo-dr-form` stream event-type `demo-dr-form-state/questionnary-x`
-- If this is the first time the use logs-in with this form the WebApp creates  and `sharing` api-endpoint for the Dr and publish it in his `inbox`  stream
+- The app checks the state of this form with the latest event in the `demo-dr-form` stream event-type `demo-dr-form-state/questionnary-x`
+- If this is the first time the user logs in with this form, the web app creates a `sharing` api-endpoint for the doctor and publishes it in his `inbox` stream
 
-4- The form is presented to the patient with "pre-filled" data from eventual existing info.
+4- The form is presented to the patient with "pre-filled" data from any existing info.
