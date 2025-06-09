@@ -1,6 +1,17 @@
 # demo-dr-form
 Demonstrator for doctor-requested data with a form
 
+## Dev 
+
+This is a pure vanilla / JS app 
+- *.html & *-controler.js files are not designed to be reused
+- *-lib.js may give inspiration for a future "real" app
+
+To develop locally, install `node.js` and use `backloop.dev`
+- Install backlopp.dev with `npm install -g backloop.dev` 
+- Run `backloop.dev ./` from `demo-dr-form` directory
+- Open `https://whatever.backloop.dev:4443/` 
+
 ## Context
 
 A doctor sends a link to a patient.
