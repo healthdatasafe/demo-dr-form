@@ -1,6 +1,6 @@
 import { dataDefs } from './common-data-defs.js';
 import { CookieUtils } from './CookieUtils.js';
-
+import { connectAPIEndpoint } from "./common-lib.js"
 
 
 export const patientLib = {
@@ -19,7 +19,7 @@ export const patientLib = {
 let connection = null;
 let _questionaryId = null;
 async function connect (apiEndpoint, questionaryId) {
-  connection = new Pryv.Connection(apiEndpoint);
+  connection = await connectAPIEndpoint(apiEndpoint);
   _questionaryId = questionaryId;
   const accessInfo = await connection.accessInfo();
   console.log('## Patient connected', accessInfo);

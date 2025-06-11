@@ -1,6 +1,7 @@
 import { dataDefs } from "./common-data-defs.js";
+import { connectAPIEndpoint, serviceInfoUrl } from "./common-lib.js"
 
-const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-patient'
+const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-dr'
 let drConnection = null;
 
 export const drLib = {
@@ -11,7 +12,7 @@ export const drLib = {
   getQuestionnaires,
 };
 
-function showLoginButton(loginSpanId, stateChangeCallBack) {
+function showLoginButton (loginSpanId, stateChangeCallBack) {
   const authSettings = {
     spanButtonID: loginSpanId, // div id the DOM that will be replaced by the Service specific button
     onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
@@ -35,17 +36,14 @@ function showLoginButton(loginSpanId, stateChangeCallBack) {
     },
   };
 
-  // following the APP GUIDELINES: https://api.pryv.com/guides/app-guidelines/
-  const serviceInfoUrl =
-    Pryv.Browser.serviceInfoFromUrl() ||
-    "https://demo.datasafe.dev/reg/service/info";
+  
   Pryv.Browser.setupAuth(authSettings, serviceInfoUrl);
 
   async function pryvAuthStateChange(state) {
     // called each time the authentication state changes
     console.log("##pryvAuthStateChange", state);
     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
-      drConnection = new Pryv.Connection(state.apiEndpoint);
+      drConnection = await connectAPIEndpoint(state.apiEndpoint);
       stateChangeCallBack("loggedIN");
     }
     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
@@ -57,7 +55,7 @@ function showLoginButton(loginSpanId, stateChangeCallBack) {
 
 // -------- Questionnaties -----
 async function getQuestionnaires() {
-  return dataDefs.questionnaires;
+  return dataDefs.v2questionnaires;
 }
 
 // -------- Fetch patient list --------
@@ -132,7 +130,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
     apiEndpoint: patientEvent.content,
     formData: {},
   };
-  const patientConnection = new Pryv.Connection(patient.apiEndpoint);
+  const patientConnection = await connectAPIEndpoint(patient.apiEndpoint);
 
   // -- get patient data
   if (!patientEvent.streamIds.includes(qStreams.revoked)) {
@@ -197,7 +195,8 @@ async function getPatientDetails(questionaryId, patientEvent) {
  */
 function getFirstFormFields(questionaryId) {
   const forms = dataDefs.questionnaires[questionaryId].forms;
-  const firstForm = Object.values(dataDefs.questionnaires[questionaryId].forms)[0];
+  const firstForm = Object.values(forms)[0];
+  
   return firstForm.content;
 }
 

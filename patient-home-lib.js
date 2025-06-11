@@ -1,4 +1,5 @@
 import { dataDefs } from './common-data-defs.js';
+import { connectAPIEndpoint, serviceInfoUrl } from './common-lib.js';
 
 export const patientHomeLib = {
   getForms,
@@ -222,7 +223,7 @@ async function getQuestionnaryDetails (formInfo) {
 async function getQuestionnaryInfo (formEvent) {
    // retreive base information from the form
   const formApiEndpoint = formEvent.content;
-  const drConnection = new Pryv.Connection(formApiEndpoint);
+  const drConnection = await connectAPIEndpoint(formApiEndpoint);
   const drAccessInfo = await drConnection.accessInfo();
   console.log('## Dr Form info', drAccessInfo);
   const questionaryId = drAccessInfo.clientData?.[dataDefs.appId]?.questionaryId;
@@ -273,14 +274,12 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
      }
    };
  
-   // following the APP GUIDELINES: https://api.pryv.com/guides/app-guidelines/
-   const serviceInfoUrl = Pryv.Browser.serviceInfoFromUrl() || 'https://demo.datasafe.dev/reg/service/info';
    Pryv.Browser.setupAuth(authSettings, serviceInfoUrl);
  
    async function pryvAuthStateChange(state) { // called each time the authentication state changes
      console.log('##pryvAuthStateChange', state);
      if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
-       connection = new Pryv.Connection(state.apiEndpoint);
+       connection = await connectAPIEndpoint(state.apiEndpoint);
        stateChangeCallBack('loggedIN');
      }
      if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {

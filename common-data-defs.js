@@ -265,7 +265,36 @@ const questionnaires = {
   }
 }
 
+const v2 = {
+  'questionary-x': {
+    title: 'Demo with Profile and TTC-TTA',
+    forms: {
+      profile: {
+        type: 'permanent',
+        key: 'profile-x',
+        name: 'Profile',
+        itemKeys: [
+          'profile-contact-name',
+          'profile-sex',
+          'family-children-count',
+          'fertility-miscarriages-count'
+        ]
+      },
+      history: {
+        type: 'recurring',
+        key: 'recurring-x',
+        name: 'History',
+        itemKeys: [
+          'fertility-ttc-tta',
+          'body-weight'
+        ]
+      }
+    }
+  }
+}
+
 export const dataDefs = {
   appId: 'demo-dr-forms',
   questionnaires,
+  v2questionnaires: v2
 };

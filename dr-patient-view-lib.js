@@ -1,5 +1,6 @@
 
 import { dataDefs } from './common-data-defs.js';
+import { connectAPIEndpoint } from './common-lib.js';
 
 export const drPatientLib = {
   setRefresh
@@ -7,7 +8,7 @@ export const drPatientLib = {
 
 let connection;
 async function setRefresh(patientApiEndoint, questionaryId, refreshCallBack) {
-  connection = new Pryv.Connection(patientApiEndoint);
+  connection = await connectAPIEndpoint(patientApiEndoint);
   const infos = await connection.accessInfo();
 
   async function doRefresh () {
