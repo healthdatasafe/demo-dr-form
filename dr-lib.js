@@ -1,5 +1,5 @@
 import { dataDefs } from "./common-data-defs.js";
-import { connectAPIEndpoint, serviceInfoUrl } from "./common-lib.js"
+import { connectAPIEndpoint, hdsModel, serviceInfoUrl } from "./common-lib.js"
 
 const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-dr'
 let drConnection = null;
@@ -170,6 +170,8 @@ async function getPatientDetails(questionaryId, patientEvent) {
   // get profile form data
   const formProfile = dataDefs.questionnaires[questionaryId].forms.profile;
 
+  // get eventTypes
+
   // get the last value of each field
   const apiCalls = formProfile.content.map((field) => ({
     method: "events.get",
@@ -184,7 +186,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
   for (const profileEventRes of profileEventsResults) {
     const profileEvent = profileEventRes?.events?.[0];
     if (!profileEvent) continue;
-    const field = dataFieldFromEvent(formProfile, profileEvent);
+    const field = dataFieldFromEvent(profileEvent);
     patient.formData[field.key] = field;
   }
   return patient;
@@ -194,47 +196,34 @@ async function getPatientDetails(questionaryId, patientEvent) {
  * get the list of rows for the initial table
  */
 function getFirstFormFields(questionaryId) {
-  const forms = dataDefs.questionnaires[questionaryId].forms;
+  const forms = dataDefs.v2questionnaires[questionaryId].forms;
   const firstForm = Object.values(forms)[0];
+  const itemDefs = [];
+  for (const itemKey of firstForm.itemKeys) {
+    itemDefs.push(hdsModel().itemDefForKey(itemKey));
+  }
   
-  return firstForm.content;
-}
-
-const dataFieldsCaches = {};
-function initFieldsCache(formProfile) {
-  if (dataFieldsCaches[formProfile.key] == null) {
-    dataFieldsCaches[formProfile.key] = {};
-  }
-  const dataFieldsCache = dataFieldsCaches[formProfile.key];
-
-  if (Object.keys(dataFieldsCache).length !== 0) return dataFieldsCache;
-  for (const formField of formProfile.content) {
-    const dataFieldId = formField.streamId + ":" + formField.eventType;
-    dataFieldsCache[dataFieldId] = formField;
-  }
-  return dataFieldsCache;
+  return itemDefs;
 }
 
 /**
  * Link an event to a data field from form
  * @param {*} event
  */
-function dataFieldFromEvent(formProfile, event) {
-  const dataFieldsCache = initFieldsCache(formProfile);
-  const formFieldId = event.streamId + ":" + event.type;
-  const dataField = dataFieldsCache[formFieldId];
-  if (!dataField) {
-    console.error("## Data field not found for event", event);
+function dataFieldFromEvent(event) {
+  const itemDef = hdsModel().itemDefForEvent(event, false);
+  if (!itemDef) {
+    console.error("## itemDef not found for event", event);
     return null;
   }
   const field = {
-    key: formFieldId,
-    label: dataField.label,
-    type: dataField.type,
+    key: itemDef.key,
+    label: itemDef.data.label.en,
+    type: itemDef.data.type,
     value: event.content,
     event: event,
   };
-  if (dataField.type === "date") {
+  if (field.type === "date") {
     const date = new Date(event.content);
     if (!isNaN(date)) {
       field.value = date.toISOString().split("T")[0]; // format YYYY-MM-DD

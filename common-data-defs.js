@@ -274,7 +274,7 @@ const v2 = {
         key: 'profile-x',
         name: 'Profile',
         itemKeys: [
-          'profile-contact-name',
+          'profile-name',
           'profile-sex',
           'family-children-count',
           'fertility-miscarriages-count'
@@ -287,6 +287,34 @@ const v2 = {
         itemKeys: [
           'fertility-ttc-tta',
           'body-weight'
+        ]
+      }
+    }
+  },
+  'questionnary-basic': {
+    title: 'Basic Profile and Cycle Information',
+    forms: {
+      profile: {
+        type: 'permanent',
+        key: 'profile-b',
+        name: 'Profile',
+        itemKeys: [
+          'profile-name',
+          'profile-surname',
+          'profile-date-of-birth'
+        ]
+      },
+      history: {
+        type: 'recurring',
+        key: 'recurring-b',
+        name: 'History',
+        itemKeys: [
+          'body-weight',
+          'body-vulva-wetness-feeling',
+          'body-vulva-mucus-inspect',
+          'body-vulva-mucus-stretch',
+          'fertility-cycles-start',
+          'fertility-cycles-ovulation'
         ]
       }
     }

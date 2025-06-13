@@ -1,6 +1,6 @@
 
-import { dataDefs } from './common-data-defs.js';
-import { connectAPIEndpoint } from './common-lib.js';
+
+import { connectAPIEndpoint, hdsModel } from './common-lib.js';
 
 export const drPatientLib = {
   setRefresh
@@ -27,21 +27,6 @@ async function setRefresh(patientApiEndoint, questionaryId, refreshCallBack) {
 }
 
 
-// prepare data for easy lookup 
-// map streamId/EventType with form data
-const eventMapByQuestionnary = {};
-for (const [questionaryId, questionary] of Object.entries(dataDefs.questionnaires)) {
-  eventMapByQuestionnary[questionaryId] = {};
-  for (const form of Object.values(questionary.forms)) {
-    for (const field of form.content) {
-      eventMapByQuestionnary[questionaryId][field.streamId + ':' + field.eventType] = Object.assign({
-        formLabel: form.name,
-        formType: form.type
-      }, field);
-    }
-  }
-}
-
 async function getPatientData (questionaryId) {
   const patientData = [];
   const queryParams = { limit: 10000};
@@ -56,6 +41,7 @@ async function getPatientData (questionaryId) {
 
 
 function getLineForEvent (event, questionaryId) {
+  const model = hdsModel();
   const line = {
     time: (new Date(event.time * 1000)).toISOString(),
     formLabel: 'Unkown',
@@ -64,23 +50,24 @@ function getLineForEvent (event, questionaryId) {
     value: JSON.stringify(event.content),
     description: ''
   }
-  
-  const field = eventMapByQuestionnary[questionaryId][event.streamId + ':' + event.type];
-  if (field) {
-    Object.assign(line, field);
-    if (field.type === 'date') {
+
+  const itemDef = model.itemDefForEvent(event, false);
+  if (itemDef) {
+    line.formLabel = itemDef.data.label.en;
+    line.formType = itemDef.data.type;
+    if (line.formType === 'date') {
       line.value = (new Date(event.time * 1000)).toISOString().split('T')[0];
     }
-    if (field.type === 'select') {
+    if (line.formType === 'select') {
       line.value = event.content;
-      if (field.eventType === 'ratio/generic') {
+      if (itemDef.types[0] === 'ratio/generic') {
         line.value = event.content.value;
       }
 
-      const selected = field.options.find((o) => ( o.value === line.value ));
-      line.description = selected?.label;
+      const selected = itemDef.data.options.find((o) => ( o.value === line.value ));
+      line.description = selected?.label.en;
     }
-    if (field.type === 'checkbox') {
+    if (line.formType === 'checkbox') {
       if (event.type === 'activity/plain') {
         line.description = 'X';
         line.value = 'x';

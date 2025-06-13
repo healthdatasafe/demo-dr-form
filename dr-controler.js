@@ -89,7 +89,7 @@ async function setPatientList(questionaryId) {
   const table = document.getElementById('patients-table');
   // clear table
   table.innerHTML = '';
-  const fields = drLib.getFirstFormFields(questionaryId);
+  const itemDefs = drLib.getFirstFormFields(questionaryId);
   const headers = {
     status: 'Status',
     username: 'Username'
@@ -102,12 +102,11 @@ async function setPatientList(questionaryId) {
   const headerUserCell = document.createElement("TH");
   headerUserCell.innerHTML = 'Username';
   headerRow.appendChild(headerUserCell);
-  for (const field of fields) {
+  for (const itemDef of itemDefs) {
     const headerCell = document.createElement("TH");
-    const formFieldId = field.streamId + ':' + field.eventType;
-    headerCell.innerHTML = field.label;
+    headerCell.innerHTML = itemDef.data.label.en;
     headerRow.appendChild(headerCell);
-    headers[formFieldId] = field.label;
+    headers[itemDef.key] = itemDef.data.label.en;
   }
 
   // --- patients
@@ -125,11 +124,10 @@ async function setPatientList(questionaryId) {
       status: patient.status,
       username: patient.username
     }
-    for (const field of fields) {
-      const formFieldId = field.streamId + ':' + field.eventType;
-      const value = patient.formData[formFieldId]?.value;
+    for (const itemDef of itemDefs) {
+      const value = patient.formData[itemDef.key]?.value;
       row.insertCell(-1).innerHTML = (value != null) ? value : '';
-      patientData[formFieldId] = value;
+      patientData[itemDef.key] = value;
     }
     patientsData.push(patientData);
   }
