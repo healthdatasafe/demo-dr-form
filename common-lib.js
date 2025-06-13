@@ -13,6 +13,7 @@ export async function initHDSModel () {
     const service = new Pryv.Service(serviceInfoUrl);
     const serviceInfo = await service.info();
     model = new HDSLib.HDSModel(serviceInfo.assets['hds-model']);
+    console.log('## model:', model);
     await model.load();
   }
   return model;

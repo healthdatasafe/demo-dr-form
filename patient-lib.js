@@ -87,8 +87,7 @@ async function getFormHistorical (questionaryId, formKey) {
       label: itemDef.data.label.en,
       type: itemDef.data.type,
       options: itemDef.data.options,
-      streamId: itemDef.data.streamId,
-      eventType: itemDef.eventTypes[0] // take first type by default for now
+      itemDef
     } 
   });
   return formFields;
@@ -129,10 +128,13 @@ async function getFormPermanentContent (questionaryId, formKey) {
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
       const valueAndTxt = valueAndTxtForField(event, itemDef);
+      console.log('>> valueAndtxt', {event, valueAndTxt});
       content.value = valueAndTxt.value;
       content.valueTxt = valueAndTxt.txt;
       content.eventId = event.id; // will allow t track if the event is to be updated
-    } 
+    } else {
+      console.log('>> no event', e);
+    }
     formContent.push(content);
   }
   return formContent;
@@ -228,15 +230,13 @@ function valueAndTxtForField (event, itemDef) {
 // ---------------- create / update data ---------------- //
 
 function parseValue (value, field) {
-  const type = field.type;
+  const type = field.itemDef.data.type;
+  console.log('>> parsValue', {value, field});
   if (value === undefined || value === null || value === '') {
     return '';
   }
-  if (type === 'number' || field.parseValueToNum) {
+  if (type === 'number') {
     return parseFloatCustom(value);
-  }
-  if (type === 'boolean') {
-    return value === 'true';
   }
   if (type === 'date') {
     if (value instanceof Date && !isNaN(value)) {
@@ -244,7 +244,7 @@ function parseValue (value, field) {
     }
     return value === '';
   }
-  if (type === 'select' && field.eventType === 'ratio/generic') {
+  if (type === 'select' && field.itemDef.eventTypes[0] === 'ratio/generic') {
     const numValue = parseFloatCustom(value);
     if (numValue === '') return '';
     // relative to is the latest value of options
@@ -254,9 +254,12 @@ function parseValue (value, field) {
       relativeTo
     }
   }
-  if (type === 'checkbox' && field.eventType === 'activity/plain') {
-    if (value === 'x') return null; // will be handled as a value
+  if (type === 'checkbox' && field.itemDef.eventTypes[0] === 'activity/plain') {
+    if (value === 'true') return null; // will be handled as a value
     return '';
+  }
+  if (type === 'checkbox') {
+    return value === 'true';
   }
   return value;
 }
@@ -271,12 +274,14 @@ function parseFloatCustom(value) {
 }
 
 async function handleFormSubmit (formData, values, date) {
+  console.log('## handleForm', {formData, values, date});
   const apiCalls = [];
   for (const field of formData) {
-    const streamId = field.streamId;
-    const eventType = field.eventType;
+    const streamId = field.itemDef.data.streamId;
+    const eventType = field.itemDef.eventTypes[0];
     const eventId = field.eventId;
     const value = parseValue(values[field.id], field);
+    console.log('>> parsed value:', value);
     if (value === '' && eventId) {
       // delete the event
       apiCalls.push({

@@ -161,7 +161,7 @@ async function submitForm(formData, dateStr) {
     if (field.type === "date") {
       values[field.id] = formField.valueAsDate;
     } else if (field.type === "checkbox") {
-      values[field.id] = formField.checked ? 'x' : '';
+      values[field.id] = formField.checked ? 'true' : '';
     } else {
       values[field.id] = formField.value.trim();
     }

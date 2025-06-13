@@ -275,6 +275,7 @@ const v2 = {
         name: 'Profile',
         itemKeys: [
           'profile-name',
+          'profile-surname',
           'profile-sex',
           'family-children-count',
           'fertility-miscarriages-count'
