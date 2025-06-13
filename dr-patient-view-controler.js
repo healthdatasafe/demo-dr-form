@@ -33,9 +33,9 @@ window.onload = async (event) => {
 
 const tableHeaders = {
   time: 'Date',
-  formLabel: 'Set',
+  formLabel: 'Label',
   formType: 'Type',
-  label: 'Label',
+  streamAndType: 'Stream And Type',
   value: 'Value',
   description: 'Description'
 }

@@ -46,13 +46,15 @@ function getLineForEvent (event, questionaryId) {
     time: (new Date(event.time * 1000)).toISOString(),
     formLabel: 'Unkown',
     formType: 'Unkown',
-    label: event.streamId + ' - ' + event.type,
+    streamAndType: event.streamId + ' - ' + event.type,
     value: JSON.stringify(event.content),
     description: ''
   }
 
   const itemDef = model.itemDefForEvent(event, false);
   if (itemDef) {
+    line.streamId = event.streamIds[0];
+    line.eventType = event.type;
     line.formLabel = itemDef.data.label.en;
     line.formType = itemDef.data.type;
     if (line.formType === 'date') {
