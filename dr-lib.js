@@ -168,19 +168,21 @@ async function getPatientDetails(questionaryId, patientEvent) {
 
   // -- get data
   // get profile form data
-  const formProfile = dataDefs.questionnaires[questionaryId].forms.profile;
+  const formProfile = dataDefs.v2questionnaires[questionaryId].forms.profile;
 
-  // get eventTypes
 
-  // get the last value of each field
-  const apiCalls = formProfile.content.map((field) => ({
-    method: "events.get",
-    params: {
-      streams: [field.streamId],
-      types: [field.eventType],
-      limit: 1,
-    },
-  }));
+  // get the last value of each itemKey
+  const apiCalls = formProfile.itemKeys.map((itemKey) => {
+    const itemDef = hdsModel().itemDefForKey(itemKey);
+    return {
+      method: "events.get",
+      params: {
+        streams: [itemDef.data.streamId],
+        types: itemDef.types,
+        limit: 1,
+      }
+    };
+  });
 
   const profileEventsResults = await patientConnection.api(apiCalls);
   for (const profileEventRes of profileEventsResults) {
