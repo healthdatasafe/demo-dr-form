@@ -1,17 +1,17 @@
 import { dataDefs } from './common-data-defs.js';
 import { CookieUtils } from './CookieUtils.js';
-import { connectAPIEndpoint } from "./common-lib.js"
+import { connectAPIEndpoint, hdsModel } from "./common-lib.js"
 
 
 export const patientLib = {
   handleFormSubmit,
   getFormTitle,
-  getFormContent,
+  getFormPermanentContent,
+  getFormHistorical,
   getHistoricalContent,
   connect,
   navSetData,
   navGetData,
-  getForms,
   navGetPages
 }
 
@@ -53,7 +53,7 @@ async function navGetPages(questionaryId) {
     label: 'Home',
     formKey: null
   }];
-  const forms = await patientLib.getForms(questionaryId);
+  const forms = await getForms(questionaryId);
   for (const [formKey, form] of Object.entries(forms)) {
     pages.push({
       type: form.type,
@@ -69,41 +69,29 @@ async function navGetPages(questionaryId) {
 // ---------------- form content ---------------- //
 
 function getFormTitle (questionaryId) {
-  return dataDefs.questionnaires[questionaryId].title;
+  return dataDefs.v2questionnaires[questionaryId].title;
 }
 
 async function getForms (questionaryId) {
-  return dataDefs.questionnaires[questionaryId].forms;
+  return dataDefs.v2questionnaires[questionaryId].forms;
 }
 
-/**
- * Get Form content
- * @param {string} questionaryId 
- * @param {string} formKey 
- * @param {Date} [date] - If editing content from existing date 
- * @returns 
- */
-async function getFormContent (questionaryId, formKey, date) {
-  const form = dataDefs.questionnaires[questionaryId].forms[formKey];
-  console.log('## getFormContent', form, questionaryId, formKey);
-  if (form.type === 'permanent') {
-    return getFormExistingContent(form);
-  }
-  if (form.type === 'recurring') {
-    return getFormRecurringContent(form, date);
-  }
-  return [];
-}
 
-async function getFormRecurringContent (form, date) {
-  const formReccuringData = structuredClone(form.content);
-
-  for (let i = 0; i < formReccuringData.length; i++) {
-    const field = formReccuringData[i];
-    field.id = field.streamId + ':' + field.eventType;
-  }
-  return formReccuringData;
-  
+async function getFormHistorical (questionaryId, formKey) {
+  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+  const formFields = form.itemKeys.map((itemKey) => {
+    const itemDef = (hdsModel().itemDefForKey(itemKey));
+    
+    return {
+      id: itemDef.key,
+      label: itemDef.data.label.en,
+      type: itemDef.data.type,
+      options: itemDef.data.options,
+      streamId: itemDef.data.streamId,
+      eventType: itemDef.eventTypes[0] // take first type by default for now
+    } 
+  });
+  return formFields;
 }
 
 // local copy of formProfileContent + actual values
@@ -112,55 +100,68 @@ async function getFormRecurringContent (form, date) {
  * @param {*} date 
  * @returns 
  */
-async function getFormExistingContent (form, date) {
-  const formData = structuredClone(form.content);
-
+async function getFormPermanentContent (questionaryId, formKey) {
+  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+  // get formItems
+  const formItemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemDefForKey(itemKey)));
   // get the values from the API
-  const apiCalls = formData.map(field => ({
+  const apiCalls = formItemDefs.map(itemDef => ({
     method: 'events.get',
     params: {
-      streams: [field.streamId],
-      types: [field.eventType],
+      streams: [itemDef.data.streamId],
+      types: itemDef.eventTypes,
       limit: 1,
     }
   }));
 
+  const formContent = [];
   const res = await connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
-    const field = formData[i];
-    field.id = field.streamId + ':' + field.eventType;
-    console.log('## getFormContent ' + i, e);
+    const itemDef = formItemDefs[i];
+    const content = {
+      id: itemDef.key,
+      type: itemDef.data.type,
+      label: itemDef.data.label.en,
+      options: itemDef.data.options,
+      itemDef,
+    }
     if (e.events && e.events.length > 0) {
       const event = e.events[0];
-      const valueAndTxt = valueAndTxtForField(event.content, field);
-      field.value = valueAndTxt.value;
-      field.valueTxt = valueAndTxt.txt;
-      field.eventId = event.id; // will allow t track if the event is to be updated
+      const valueAndTxt = valueAndTxtForField(event, itemDef);
+      content.value = valueAndTxt.value;
+      content.valueTxt = valueAndTxt.txt;
+      content.eventId = event.id; // will allow t track if the event is to be updated
     } 
+    formContent.push(content);
   }
-  return formData;
+  return formContent;
 };
 
 
 async function getHistoricalContent(questionaryId, formKey) {
-  const formFields = dataDefs.questionnaires[questionaryId].forms[formKey].content;
-  const tableHeaders = formFields.map(field => ({
-    fieldId: field.streamId + ':' + field.eventType,
-    label: field.label,
-    type: field.type
+  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+  const itemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemDefForKey(itemKey)));
+  const tableHeaders = itemDefs.map(itemDef => ({
+    fieldId: itemDef.key,
+    label: itemDef.data.label.en,
+    type: itemDef.data.type
   }));
 
   const valuesByDateStr = {};
-  function addEntry (field, time, event) {
-    const dateStr = (new Date(time * 1000)).toISOString().split('T')[0];
+  function addEntry (event) {
+    const itemDef = hdsModel().itemDefForEvent(event, false);
+    if (itemDef == null) {
+      console.log('Historical content -- unkown event', event);
+      return;
+    }
+    const dateStr = (new Date(event.time * 1000)).toISOString().split('T')[0];
     if (valuesByDateStr[dateStr] == null) valuesByDateStr[dateStr] = {
-      dateNum: (new Date(dateStr)).getTime() / 100,
+      dateNum: (new Date(dateStr)).getTime() / 1000,
       dateStr,
     };
-    const fieldId = field.streamId + ':' + field.eventType;
-    const valueAndTxt = valueAndTxtForField(event.content, field);
-    valuesByDateStr[dateStr][fieldId] = {
+    const valueAndTxt = valueAndTxtForField(event, itemDef);
+    valuesByDateStr[dateStr][itemDef.key] = {
       value: valueAndTxt.value,
       valueTxt: valueAndTxt.txt,
       eventId: event.id
@@ -168,21 +169,20 @@ async function getHistoricalContent(questionaryId, formKey) {
   }
 
   // get the values from the API
-  const apiCalls = formFields.map(field => ({
+  const apiCalls = itemDefs.map(itemDef => ({
     method: 'events.get',
     params: {
-      streams: [field.streamId],
-      types: [field.eventType],
-      limit: 20, // last 20 is enough for a demo
+      streams: [itemDef.data.streamId],
+      types: itemDef.eventTypes,
+      limit: 20, // last 20 of each item is enough for a demo
     }
   }));
   const res = await connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
-    const field = formFields[i];
     if (e.events) {
       for (const event of e.events) {
-        addEntry(field, event.time, event);
+        addEntry(event);
       }
     } 
   }
@@ -192,37 +192,37 @@ async function getHistoricalContent(questionaryId, formKey) {
   return { tableHeaders, valuesByDate };
 }
 
-function valueAndTxtForField (eventContent, field) {
-  if (field.eventType === 'activity/plain' ) {
+function valueAndTxtForField (event, itemDef) {
+  if (event.type === 'activity/plain' ) {
     return { value: 'x', txt:  'X'};
   }
-  if (field.type === 'date' && eventContent != null ) {
+  if (itemDef.data.type === 'date' && event.content != null ) {
     // convert the date to a Date object
-    const date = new Date(eventContent);
+    const date = new Date(event.content);
     if (!isNaN(date)) {
       const dayStr = date.toISOString().split('T')[0];
       return { value: dayStr, txt: dayStr }; // format YYYY-MM-DD
     } 
-    console.error('## Error parsing date', eventContent);
+    console.error('## Error parsing date', event.content);
     return {value: '', txt: 'Error parsing date'};
   }
-  if (field.type === 'select') {
-    let value = eventContent;
+  if (itemDef.data.type === 'select') {
+    let value = event.content;
     let txt = value;
-    if (field.eventType === 'ratio/generic') {
-      value = eventContent.value;
+    if (event.type === 'ratio/generic') {
+      value = event.content.value;
     }
-
-    const selected = field.options.find((o) => ( o.value === value ));
+    console.log({value, event})
+    const selected = itemDef.data.options.find((o) => ( o.value === value ));
     if (selected) {
-      txt = selected?.label;
+      txt = selected?.label.en;
     }
     return { value, txt };
+  } 
+  if (event.type === 'ratio/generic' && event.content != null ) {
+    return { value: event.content.value, txt:  event.content.value};
   }
-  if (field.eventType === 'ratio/generic' && eventContent != null ) {
-    return { value: eventContent.value, txt:  eventContent.value};
-  }
-  return { value: eventContent, txt: eventContent };
+  return { value: event.content, txt: event.content };
 }
 
 // ---------------- create / update data ---------------- //

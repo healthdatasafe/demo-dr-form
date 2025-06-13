@@ -39,22 +39,16 @@ function refreshClick(dateStr) {
   refreshAll(dateStr);
 }
 
-let lastDateStr = null;
 async function refreshAll(dateStr) {
   console.log("## Refresh Form Date:", dateStr);
-  if (dateStr === lastDateStr) {
-    console.log("## Skipping Refresh Form Date, date are identical");
-    return;
-  }
-  lastDateStr = dateStr;
   
   const { questionaryId, formKey } = navData;
   // -- content
-  console.log();
-  const formData = await patientLib.getFormContent(
+  const formData = await patientLib.getFormHistorical(
     questionaryId,
     formKey
   );
+
   const tableRow = await refreshDataTable(dateStr);
   console.log('## tableRow', tableRow);
 
@@ -66,9 +60,9 @@ async function refreshAll(dateStr) {
     }
   }
 
-  updateFormContent(formData);
+  await updateFormContent(formData);
   document.getElementById("submit-button-list").onclick = function () {
-    submitForm(formData, new Date(dateStr));
+    submitForm(formData, dateStr);
   };
 }
 
@@ -139,7 +133,7 @@ async function updateFormContent(formData) {
       fieldHTML += `<option value="">--</option>`;
       for (const option of formField.options) {
         const selected = `${option.value}` === fieldValue ? "selected" : "";
-        fieldHTML += `<option value="${option.value}" ${selected}>${option.label}</option>`;
+        fieldHTML += `<option value="${option.value}" ${selected}>${option.label.en}</option>`;
       }
       fieldHTML += `</select>`;
     } else if (fieldType === "date") {
@@ -156,7 +150,8 @@ async function updateFormContent(formData) {
 /**
  * Submit the form and send the data to the API
  */
-async function submitForm(formData, date) {
+async function submitForm(formData, dateStr) {
+  
   const values = {};
   for (let i = 0; i < formData.length; i++) {
     const field = formData[i];
@@ -171,7 +166,8 @@ async function submitForm(formData, date) {
       values[field.id] = formField.value.trim();
     }
   }
-  await patientLib.handleFormSubmit(formData, values, date);
+  console.log('## SubmitForm', {formData, values});
+  await patientLib.handleFormSubmit(formData, values, new Date(dateStr));
   alert("Form submitted successfully");
-  refreshAll(date);
+  await refreshAll(dateStr);
 }

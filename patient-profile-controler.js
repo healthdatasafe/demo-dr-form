@@ -24,7 +24,7 @@ async function refreshForm () {
   const { questionaryId, formKey } = navData;
   // -- content
 ;  console.log()
-  const formData = await patientLib.getFormContent(questionaryId, formKey)
+  const formData = await patientLib.getFormPermanentContent(questionaryId, formKey)
   updateFormContent(formData);
   document.getElementById('submit-button-list').onclick =  function () { 
     submitForm(formData); 
@@ -38,7 +38,7 @@ async function refreshForm () {
  * Take the from content from the definition and actual values and create the HTML
  */
 async function updateFormContent(formData) {
-  console.log('Form content:', formData);
+  console.log('### Form content:', formData);
  
   // Append the HTML to the form
   document.getElementById('inputs-list').innerHTML = ''; // Clear previous content
@@ -58,7 +58,7 @@ async function updateFormContent(formData) {
       fieldHTML += `<option value="">--</option>`;
       for (const option of formField.options) {
         const selected = (option.value === fieldValue) ? 'selected' : '';
-        fieldHTML += `<option value="${option.value}" ${selected}>${option.label}</option>`;
+        fieldHTML += `<option value="${option.value}" ${selected}>${option.label.en}</option>`;
       }
       fieldHTML += `</select>`;
     } else if (fieldType === 'date') {

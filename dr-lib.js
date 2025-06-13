@@ -178,7 +178,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
       method: "events.get",
       params: {
         streams: [itemDef.data.streamId],
-        types: itemDef.types,
+        types: itemDef.eventTypes,
         limit: 1,
       }
     };

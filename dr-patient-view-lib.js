@@ -60,7 +60,7 @@ function getLineForEvent (event, questionaryId) {
     }
     if (line.formType === 'select') {
       line.value = event.content;
-      if (itemDef.types[0] === 'ratio/generic') {
+      if (event.type === 'ratio/generic') {
         line.value = event.content.value;
       }
 
