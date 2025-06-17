@@ -129,8 +129,6 @@ async function showFormDetails(formInfo) {
   if (formDetails.status === 'accepted') {
     buttonOpen.innerHTML = 'Open';
     buttonOpen.onclick = async function () {
-      // -- hack publish access anyway (this should be done just once)
-      await patientHomeLib.publishAccess(formDetails);
       document.location.href = nextPage;
     };
     buttonRevoke.innerHTML = 'Revoke';

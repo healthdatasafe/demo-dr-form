@@ -1,5 +1,5 @@
 import { dataDefs } from './common-data-defs.js';
-import { connectAPIEndpoint, serviceInfoUrl } from './common-lib.js';
+import { connectAPIEndpoint, hdsModel, serviceInfoUrl } from './common-lib.js';
 
 export const patientHomeLib = {
   getForms,
@@ -95,7 +95,8 @@ async function createsPatientAccountStreams (connection, streams) {
 // ---- if first connection to the app create a sharing for the Dr and submit it ---- //
 async function grantAccess (formInfo, formDetails) {
   // create needed base streams
-  const baseStreams = dataDefs.questionnaires[formInfo.questionaryId].patientBaseStreams;
+  const itemKeys = dataDefs.utilGetAllItemKeys(formInfo.questionaryId);
+  const baseStreams = hdsModel().streamsGetNecessaryListForItemKeys(itemKeys);
   await createsPatientAccountStreams(connection, baseStreams);
   
   // remove unecessary permissions details
@@ -127,9 +128,6 @@ async function grantAccess (formInfo, formDetails) {
 }
 
 async function publishAccess (formDetails) {
-  // create needed base streams
-  const baseStreams = dataDefs.questionnaires[formDetails.formInfo.questionaryId].patientBaseStreams;
-  await createsPatientAccountStreams(connection, baseStreams);
 
   // publishing access on Dr Account
   const apiCalls = [{
