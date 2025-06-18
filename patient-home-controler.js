@@ -1,5 +1,6 @@
 import { patientLib } from './patient-lib.js';
 import { patientHomeLib } from './patient-home-lib.js';
+import { dataDefs } from './common-data-defs.js';
 
 /**
  * UI management code. 
@@ -110,7 +111,7 @@ async function showFormDetails(formInfo) {
   for (const permission of formDetails.permissions) {
     const row = tbody.insertRow(-1);
     const cellStream = row.insertCell(-1);
-    cellStream.innerHTML = permission.name;
+    cellStream.innerHTML = permission.defaultName;
     const cellLevel = row.insertCell(-1);
     cellLevel.innerHTML = permission.level;
   }

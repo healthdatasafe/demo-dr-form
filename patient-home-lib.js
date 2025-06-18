@@ -94,6 +94,7 @@ async function createsPatientAccountStreams (connection, streams) {
 
 // ---- if first connection to the app create a sharing for the Dr and submit it ---- //
 async function grantAccess (formInfo, formDetails) {
+  console.log('#FormDetails', {formInfo, formDetails});
   // create needed base streams
   const itemKeys = dataDefs.utilGetAllItemKeys(formInfo.questionaryId);
   const baseStreams = hdsModel().streamsGetNecessaryListForItemKeys(itemKeys);
@@ -210,7 +211,7 @@ async function getQuestionnaryDetails (formInfo) {
    const questionaryId = appInfos.questionaryId;
    console.log('## Questionnary ID', questionaryId);
 
-   details.permissions = dataDefs.questionnaires[questionaryId]?.permissions;
+   details.permissions = dataDefs.utilGetPermissions(questionaryId);
    return details;
 }
 

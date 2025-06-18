@@ -317,6 +317,11 @@ async function getSharingToken(questionaryId) {
             feature: "selfRevoke",
             setting: "forbidden",
           },
+          {
+            // for "publicly shared access" always forbid the selfAudit feature
+            feature: "selfAudit",
+            setting: "forbidden",
+          },
         ],
         clientData: {
           [dataDefs.appId]: {

@@ -1,67 +1,12 @@
 
-
-const patientBasePermissionsX = [
-  {id: 'profile', name: 'Profile'},
-  {id: 'family', name: 'Family'},
-  {id: 'fertility', name: 'Fertility'},
-  {id: 'body-height', name: 'Body height'},
-  {id: 'body-weight', name: 'Body weight'},
-];
-
-const patientBasePermissionsB = [
-  {id: 'profile', name: 'Profile'},
-  {id: 'fertility-cycles', name: 'Fertility Cycles'},
-  {id: 'body-vulva', name: 'Vulva'},
-  {id: 'body-weight', name: 'Body weight'},
-]
-
-
-const questionnaires = {
-  'questionary-x': {
-    title: 'Demo with Profile and TTC-TTA',
-    permissions: patientBasePermissionsX.map(perm => ({
-      streamId: perm.id,
-      level: 'read',
-      name: perm.name,
-    })),
-    forms: {
-      profile: {
-        type: 'permanent',
-        key: 'profile-x',
-        name: 'Profile',
-      },
-      history: {
-        type: 'recurring',
-        key: 'recurring-x',
-        name: 'History',
-      }
-    }
-  },
-  'questionnary-basic': {
-    title: 'Basic Profile and Cycle Information',
-    permissions: patientBasePermissionsB.map(perm => ({
-      streamId: perm.id,
-      level: 'read',
-      name: perm.name,
-    })),
-    forms: {
-      profile: {
-        type: 'permanent',
-        key: 'profile-b',
-        name: 'Profile'
-      },
-      history: {
-        type: 'recurring',
-        key: 'recurring-b',
-        name: 'History'
-      }
-    }
-  }
-}
-
+import { hdsModel } from './common-lib.js';
 const v2 = {
   'questionary-x': {
     title: 'Demo with Profile and TTC-TTA',
+    permissionsPreRequest: [
+      {streamId: 'profile'},
+      {streamId: 'fertility'},
+    ],
     forms: {
       profile: {
         type: 'permanent',
@@ -88,6 +33,9 @@ const v2 = {
   },
   'questionnary-basic': {
     title: 'Basic Profile and Cycle Information',
+    permissionsPreRequest: [
+      {streamId: 'profile'}
+    ],
     forms: {
       profile: {
         type: 'permanent',
@@ -116,6 +64,15 @@ const v2 = {
   }
 }
 
+
+function utilGetPermissions (questionaryId) {
+  const preRequest = v2[questionaryId].permissionsPreRequest || [];
+  const itemKeys = utilGetAllItemKeys(questionaryId);
+  const permissions = hdsModel().authorizationForItemKeys(itemKeys, { preRequest });
+  return permissions
+}
+
+
 /**
  * get all itemKeys of a questionnary
  * @param {*} questionaryId 
@@ -131,7 +88,7 @@ function utilGetAllItemKeys (questionaryId) {
 
 export const dataDefs = {
   appId: 'demo-dr-forms',
-  questionnaires,
   v2questionnaires: v2,
-  utilGetAllItemKeys
+  utilGetAllItemKeys,
+  utilGetPermissions
 };
