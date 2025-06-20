@@ -68,7 +68,7 @@ const v2 = {
 function utilGetPermissions (questionaryId) {
   const preRequest = v2[questionaryId].permissionsPreRequest || [];
   const itemKeys = utilGetAllItemKeys(questionaryId);
-  const permissions = hdsModel().authorizationForItemKeys(itemKeys, { preRequest });
+  const permissions = hdsModel().authorizations.forItemKeys(itemKeys, { preRequest });
   return permissions
 }
 

@@ -97,7 +97,7 @@ async function grantAccess (formInfo, formDetails) {
   console.log('#FormDetails', {formInfo, formDetails});
   // create needed base streams
   const itemKeys = dataDefs.utilGetAllItemKeys(formInfo.questionaryId);
-  const baseStreams = hdsModel().streamsGetNecessaryListForItemKeys(itemKeys);
+  const baseStreams = hdsModel().streams.getNecessaryListForItemKeys(itemKeys);
   await createsPatientAccountStreams(connection, baseStreams);
   
   // remove unecessary permissions details

@@ -80,7 +80,7 @@ async function getForms (questionaryId) {
 async function getFormHistorical (questionaryId, formKey) {
   const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
   const formFields = form.itemKeys.map((itemKey) => {
-    const itemDef = (hdsModel().itemDefForKey(itemKey));
+    const itemDef = (hdsModel().itemsDefs.forKey(itemKey));
     
     return {
       id: itemDef.key,
@@ -102,7 +102,7 @@ async function getFormHistorical (questionaryId, formKey) {
 async function getFormPermanentContent (questionaryId, formKey) {
   const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
   // get formItems
-  const formItemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemDefForKey(itemKey)));
+  const formItemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
   // get the values from the API
   const apiCalls = formItemDefs.map(itemDef => ({
     method: 'events.get',
@@ -143,7 +143,7 @@ async function getFormPermanentContent (questionaryId, formKey) {
 
 async function getHistoricalContent(questionaryId, formKey) {
   const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
-  const itemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemDefForKey(itemKey)));
+  const itemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
   const tableHeaders = itemDefs.map(itemDef => ({
     fieldId: itemDef.key,
     label: itemDef.data.label.en,
@@ -152,7 +152,7 @@ async function getHistoricalContent(questionaryId, formKey) {
 
   const valuesByDateStr = {};
   function addEntry (event) {
-    const itemDef = hdsModel().itemDefForEvent(event, false);
+    const itemDef = hdsModel().itemsDefs.forEvent(event, false);
     if (itemDef == null) {
       console.log('Historical content -- unkown event', event);
       return;

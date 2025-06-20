@@ -51,7 +51,7 @@ function getLineForEvent (event, questionaryId) {
     description: ''
   }
 
-  const itemDef = model.itemDefForEvent(event, false);
+  const itemDef = model.itemsDefs.forEvent(event, false);
   if (itemDef) {
     line.streamId = event.streamIds[0];
     line.eventType = event.type;

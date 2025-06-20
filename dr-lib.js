@@ -173,7 +173,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
 
   // get the last value of each itemKey
   const apiCalls = formProfile.itemKeys.map((itemKey) => {
-    const itemDef = hdsModel().itemDefForKey(itemKey);
+    const itemDef = hdsModel().itemsDefs.forKey(itemKey);
     return {
       method: "events.get",
       params: {
@@ -202,7 +202,7 @@ function getFirstFormFields(questionaryId) {
   const firstForm = Object.values(forms)[0];
   const itemDefs = [];
   for (const itemKey of firstForm.itemKeys) {
-    itemDefs.push(hdsModel().itemDefForKey(itemKey));
+    itemDefs.push(hdsModel().itemsDefs.forKey(itemKey));
   }
   
   return itemDefs;
@@ -213,7 +213,7 @@ function getFirstFormFields(questionaryId) {
  * @param {*} event
  */
 function dataFieldFromEvent(event) {
-  const itemDef = hdsModel().itemDefForEvent(event, false);
+  const itemDef = hdsModel().itemsDefs.forEvent(event, false);
   if (!itemDef) {
     console.error("## itemDef not found for event", event);
     return null;
