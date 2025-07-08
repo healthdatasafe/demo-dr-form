@@ -36,14 +36,16 @@ async function setQuestionnaries() {
     tbody.removeChild(tbody.firstChild);
   }
 
-  const quests = await drLib.getQuestionnaires();
-  for (const quest of quests) {
+  const appManaging = drLib.getAppManaging();
+
+  const collectors = await appManaging.getCollectors();
+  for (const collector of collectors) {
     const row = tbody.insertRow(-1);
     const cellQuestionnary = row.insertCell(-1);
-    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${quest.name}</button>`;
-    questionnaryButtons[quest.id] = cellQuestionnary.getElementsByTagName('button')[0];
+    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${collector.name}</button>`;
+    questionnaryButtons[collector.id] = cellQuestionnary.getElementsByTagName('button')[0];
     cellQuestionnary.onclick = function () {
-      showQuestionnary(quest.id);
+      showQuestionnary(collector.id);
     };
   };
 
@@ -74,8 +76,9 @@ async function showQuestionnary(questionaryId) {
     return;
   }
 
+  const appManaging = drLib.getAppManaging();
   // get questionnary (Controller) 
-  const collector = await drLib.getQuestionnaireById(questionaryId);
+  const collector = await appManaging.getCollectorById(questionaryId);
   await collector.init(); // load controller data only when needed
   // show details
   const status = collector.statusData;

@@ -7,20 +7,28 @@ let drConnection = null;
 
 // NEW
 /** The "base" stream for this App */
-const baseStreamIdManager = 'app-dr-hds';
+const APP_MANAGING_STREAMID = 'app-dr-hds';
 /** The name of this application */
-const appName = 'HDS Dr App';
+const APP_MANAGING_NAME = 'HDS Dr App PoC';
 /** The app Manging */
-let appManaging;
+let appManaging; // initalized during pryvAuthStateChange
 
 export const drLib = {
+  // OK for v2
   showLoginButton,
+  getAppManaging,
+  // OLD
   getSharingToken,
   getPatientsList,
-  getFirstFormFields,
-  getQuestionnaires,
-  getQuestionnaireById
+  getFirstFormFields
 };
+
+/**
+ * exposes appManaging for the app 
+ */
+function getAppManaging () {
+  return appManaging;
+}
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
   const authSettings = {
@@ -28,18 +36,18 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
     authRequest: {
       // See: https://api.pryv.com/reference/#auth-request
-      requestingAppId: baseStreamIdManager, // to customize for your own app
+      requestingAppId: APP_MANAGING_STREAMID, // to customize for your own app
       requestedPermissions: [
         {
-          streamId: baseStreamIdManager,
-          defaultName: appName,
+          streamId: APP_MANAGING_STREAMID,
+          defaultName: APP_MANAGING_NAME,
           level: "manage",
         },
       ],
       clientData: {
         'app-web-auth:ensureBaseStreams': [ // this is handled by custom app web Auth3 (might be migrated in permission request)
           { id: 'applications', name: 'Applications' },
-          { id: baseStreamIdManager, name: appName, parentId: 'applications' }
+          { id: APP_MANAGING_STREAMID, name: APP_MANAGING_NAME, parentId: 'applications' }
         ],
         "app-web-auth:description": {
           type: "note/txt",
@@ -62,6 +70,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     }
     if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
       drConnection = null;
+      appManaging = null;
       stateChangeCallBack("loggedOUT");
     }
   }
@@ -76,7 +85,7 @@ async function initDemoAccount (apiEndpoint) {
   drConnection = await connectAPIEndpoint(apiEndpoint);
   const drConnectionInfo = await drConnection.accessInfo();
   console.log('## initDemoAccount - drConnectionInfo', drConnectionInfo);
-  appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromConnection(baseStreamIdManager, drConnection);
+  appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromConnection(APP_MANAGING_STREAMID, drConnection);
 
   // -- check current collectors (forms)
   const collectors = await appManaging.getCollectors();
@@ -126,18 +135,6 @@ async function initDemoAccount (apiEndpoint) {
     console.log('##2 initDemoAccount published', newCollector);
   }
   console.log('##2 initDemoAccount with ', collectors);
-}
-
-
-// -------- Questionnaties -----
-async function getQuestionnaires() {
-  const collectors = await appManaging.getCollectors();
-  return collectors;
-}
-
-async function getQuestionnaireById(questionaryId) {
-  const collectors = await appManaging.getCollectorById(questionaryId);
-  return collectors;
 }
 
 // -------- Fetch patient list --------
