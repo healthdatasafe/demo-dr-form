@@ -2,7 +2,7 @@
 import { hdsModel } from './common-lib.js';
 const v2 = {
   'questionary-x': {
-    title: 'Demo with Profile and TTC-TTA',
+    title: 'Demo with Profile and TTC-TTA 2',
     permissionsPreRequest: [
       {streamId: 'profile'},
       {streamId: 'fertility'},
@@ -32,7 +32,7 @@ const v2 = {
     }
   },
   'questionnary-basic': {
-    title: 'Basic Profile and Cycle Information',
+    title: 'Basic Profile and Cycle Information 2',
     permissionsPreRequest: [
       {streamId: 'profile'}
     ],

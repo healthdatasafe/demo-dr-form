@@ -273,15 +273,15 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
      }
    };
  
-   Pryv.Browser.setupAuth(authSettings, serviceInfoUrl);
+   HDSLib.pryv.Browser.setupAuth(authSettings, serviceInfoUrl);
  
    async function pryvAuthStateChange(state) { // called each time the authentication state changes
      console.log('##pryvAuthStateChange', state);
-     if (state.id === Pryv.Browser.AuthStates.AUTHORIZED) {
+     if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
        connection = await connectAPIEndpoint(state.apiEndpoint);
        stateChangeCallBack('loggedIN');
      }
-     if (state.id === Pryv.Browser.AuthStates.INITIALIZED) {
+     if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
        connection = null;
        stateChangeCallBack('loggedOUT');
      }

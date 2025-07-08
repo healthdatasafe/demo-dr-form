@@ -1,7 +1,7 @@
 let model;
 
 // following the APP GUIDELINES: https://api.pryv.com/guides/app-guidelines/
-export const serviceInfoUrl = Pryv.Browser.serviceInfoFromUrl() || "https://demo.datasafe.dev/reg/service/info";
+export const serviceInfoUrl = HDSLib.pryv.Browser.serviceInfoFromUrl() || "https://demo.datasafe.dev/reg/service/info";
 
 export function hdsModel () {
   if (!model) { throw new Error('Initialize model with `initHDSModel()` first') };
@@ -10,7 +10,8 @@ export function hdsModel () {
 
 export async function initHDSModel () {
   if (!model) {
-    const service = new Pryv.Service(serviceInfoUrl);
+    console.log(HDSLib);
+    const service = new HDSLib.pryv.Service(serviceInfoUrl);
     const serviceInfo = await service.info();
     model = new HDSLib.HDSModel(serviceInfo.assets['hds-model']);
     console.log('## model:', model);
@@ -20,12 +21,12 @@ export async function initHDSModel () {
 }
 
 /**
- * Return Pryv.Connection with property HDSModel Loaded
+ * Return HDSLib.pryv.Connection with property HDSModel Loaded
  * @param {string} apiEndpoint 
  * @returns 
  */
 export async function connectAPIEndpoint (apiEndpoint) {
-  const connection = new Pryv.Connection(apiEndpoint);
+  const connection = new HDSLib.pryv.Connection(apiEndpoint);
   connection.hdsModel = await initHDSModel();
   return connection;
 }

@@ -42,7 +42,7 @@ The doctor has a page where he can see individuals' data, aggregate data and exp
 
 ## Logic drafting
 
-Based on [Pryv.io](https://api.pryv.com)
+Based on [pryv.io](https://api.pryv.com)
 
 - Doctor has an HDS "controlling account" where the credentials to access patients' data will be kept 
 - The link sent to a patient contains the necessary credentials to:
