@@ -111,6 +111,9 @@ async function initDemoAccount (apiEndpoint) {
     
     const requestContent = {
       version: '0',
+      title: {
+        en: questionary.title
+      },
       requester: {
         name: 'Username ' + drConnectionInfo.user.username
       },
