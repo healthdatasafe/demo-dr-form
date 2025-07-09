@@ -8,22 +8,30 @@ import { navControler } from "./patient-nav-controler.js";
  */
 let navData;
 window.onload = async (event) => {
-  navData = await navControler.setNavComponents();
-  console.log("## navData", navData);
-  const { patientApiEndpoint, questionaryId, formKey } = navData;
-  console.log("## patientApiEndpoint:", patientApiEndpoint);
-  await patientLib.connect(patientApiEndpoint, questionaryId);
-  // - form title
-  const formTitle = document.getElementById("card-questionnary-details-title");
-  formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
+  // const get formKey
+  const formKey = (new URLSearchParams(window.location.search)).get('formKey');
+  const appClient = await patientLib.getAppClient();
+  const { collectorClientKey } = patientLib.navGetData();
+  const collectorClient = await appClient.getCollectorClientByKey(collectorClientKey);
+
+  await navControler.setNavComponents(collectorClient, formKey);
+
+  // form title
+  const formTitle = document.getElementById('card-questionnary-details-title');
+  const requestData = collectorClient.requestData;
+  const title = HDSLib.l(requestData.app.data.forms[formKey].title);
+  formTitle.innerHTML = title;
+
   const dateInput = document.getElementById("form-date");
-  dateInput.value =  dateToDayStr(new Date()); 
+  dateInput.value = dateToDayStr(new Date()); 
   dateInput.onblur = function () {
     const date = dateInput.valueAsDate;
     console.log("## Blur Out Date", date);
     refreshAll(dateToDayStr(date));
   };
 
+  // set navData
+  navData = { appClient, collectorClient, formKey };
   refreshAll(dateToDayStr(dateInput.valueAsDate));
 };
 
@@ -41,15 +49,14 @@ function refreshClick(dateStr) {
 
 async function refreshAll(dateStr) {
   console.log("## Refresh Form Date:", dateStr);
-  
-  const { questionaryId, formKey } = navData;
+  const { appClient, collectorClient, formKey } = navData;
   // -- content
   const formData = await patientLib.getFormHistorical(
-    questionaryId,
+    collectorClient,
     formKey
   );
 
-  const tableRow = await refreshDataTable(dateStr);
+  const tableRow = await refreshDataTable(collectorClient, formKey, dateStr);
   console.log('## tableRow', tableRow);
 
   // HACKY WAY TO ADD EXISTNG CONTENT SHOULD BE DONE IN LIB
@@ -62,15 +69,14 @@ async function refreshAll(dateStr) {
 
   await updateFormContent(formData);
   document.getElementById("submit-button-list").onclick = function () {
-    submitForm(formData, dateStr);
+    submitForm(collectorClient, formData, formKey, dateStr);
   };
 }
 
-async function refreshDataTable(currentDateStr) {
+async function refreshDataTable(collectorClient, formKey, currentDateStr) {
   let currentValue = {};
-  const { questionaryId, formKey } = navData;
   const tableData = await patientLib.getHistoricalContent(
-    questionaryId,
+    collectorClient,
     formKey
   );
   const table = document.getElementById("historical-data");
@@ -150,7 +156,7 @@ async function updateFormContent(formData) {
 /**
  * Submit the form and send the data to the API
  */
-async function submitForm(formData, dateStr) {
+async function submitForm(collectorClient, formData, formKey, dateStr) {
   
   const values = {};
   for (let i = 0; i < formData.length; i++) {
@@ -167,7 +173,7 @@ async function submitForm(formData, dateStr) {
     }
   }
   console.log('## SubmitForm', {formData, values});
-  await patientLib.handleFormSubmit(formData, values, new Date(dateStr));
+  await patientLib.handleFormSubmit(collectorClient, formData, formKey, values, new Date(dateStr));
   alert("Form submitted successfully");
   await refreshAll(dateStr);
 }

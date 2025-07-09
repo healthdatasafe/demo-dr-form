@@ -1,7 +1,10 @@
 import { dataDefs } from './common-data-defs.js';
 import { connectAPIEndpoint, hdsModel, serviceInfoUrl } from './common-lib.js';
+import { patientLib } from './patient-lib.js';
 
 export const patientHomeLib = {
+  getAppClient,
+  // OLD
   getForms,
   getQuestionnaryDetails,
   grantAccess,
@@ -242,13 +245,24 @@ async function getQuestionnaryInfo (formEvent) {
   }
 }
 
+// OLD
+let connection = null;
+
 
 // ---------- connection to the pryv account ------------- //
 
-let connection = null;
+// NEW
+const APP_CLIENT_NAME = 'HDS Patient app PoC';
+const APP_CLIENT_STREAMID = 'app-client-dr-form'; // also used as "appId"
+/** the client app */
+let appClient; // initalized during pryvAuthStateChange
 
 function getPatientApiEndpoint() {
   return connection.apiEndpoint;
+}
+
+function getAppClient() {
+  return appClient;
 }
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
@@ -262,7 +276,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
      spanButtonID: loginSpanId, // div id the DOM that will be replaced by the Service specific button
      onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
      authRequest: { // See: https://api.pryv.com/reference/#auth-request
-       requestingAppId: dataDefs.appId + '-patient', // to customize for your own app
+       requestingAppId: APP_CLIENT_STREAMID, // to customize for your own app
        requestedPermissions,
        clientData: {
          'app-web-auth:description': {
@@ -279,10 +293,14 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
      console.log('##pryvAuthStateChange', state);
      if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
        connection = await connectAPIEndpoint(state.apiEndpoint);
+       appClient = await HDSLib.appTemplates.AppClientAccount.newFromApiEndpoint(APP_CLIENT_STREAMID, state.apiEndpoint, APP_CLIENT_NAME);
+       patientLib.navSaveAppClient(appClient);
        stateChangeCallBack('loggedIN');
      }
      if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
        connection = null;
+       appClient = null;
+       patientLib.navSaveAppClient(null);
        stateChangeCallBack('loggedOUT');
      }
    }

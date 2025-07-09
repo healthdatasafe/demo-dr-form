@@ -187,7 +187,7 @@ async function setPatientList(questionaryId) {
 function getSharingLinkHTML(inviteSharingData) {
   const currentPage = window.location.href;
   const posDrHTML = currentPage.indexOf('dr2.html');
-  const patientURL = currentPage.substring(0, posDrHTML) + 'patient2.html';
+  const patientURL = currentPage.substring(0, posDrHTML) + 'patient.html';
   const sharingLink = `${patientURL}?apiEndpoint=${inviteSharingData.apiEndpoint}&eventId=${inviteSharingData.eventId}`;
   const sharingMailBody = 'Hello,\n\nI am sending you a link to fill out a form.\nPlease click on the link below to access the form: \n\n' + sharingLink + '\n\nBest regards,\nYour Doctor';
   let sharingLinkHTML = `<A HREF="mailto:?subject=Invitation&body=${encodeURIComponent(sharingMailBody)}">Send by email</A>`;

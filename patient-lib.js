@@ -1,41 +1,54 @@
-import { dataDefs } from './common-data-defs.js';
 import { CookieUtils } from './CookieUtils.js';
-import { connectAPIEndpoint, hdsModel } from "./common-lib.js"
+import { hdsModel, initHDSModel } from "./common-lib.js"
 
 
 export const patientLib = {
+  navSaveAppClient,
+  getAppClient,
   handleFormSubmit,
-  getFormTitle,
   getFormPermanentContent,
   getFormHistorical,
   getHistoricalContent,
-  connect,
   navSetData,
   navGetData,
   navGetPages
 }
 
-
-let connection = null;
-let _questionaryId = null;
-async function connect (apiEndpoint, questionaryId) {
-  connection = await connectAPIEndpoint(apiEndpoint);
-  _questionaryId = questionaryId;
-  const accessInfo = await connection.accessInfo();
-  console.log('## Patient connected', accessInfo);
-  return accessInfo;
-}
-
 // --------------- navigation - to be replaced if built-in framework ------- //
 
-const COOKIE_KEY = 'hds-' + dataDefs.appId;
-function navSetData(data) {
-  if (data == null) return CookieUtils.del(COOKIE_KEY, '/');
-  CookieUtils.set(COOKIE_KEY, data, 365, '/');
+
+function navSaveAppClient (appClient) {
+  console.log('## navSaveAppClient ', appClient);
+  const navData = appClient ? {
+    apiEndpoint: appClient.connection.apiEndpoint,
+    streamId: appClient.baseStreamId,
+    name: appClient.appName
+  } : null;
+  navSetData(navData, 'hds-app-client-app');
+}
+let appClient;
+async function getAppClient () {
+  if (appClient) return appClient;
+  const navData = navGetData('hds-app-client-app');
+  if (navData !== null) {
+    appClient = await HDSLib.appTemplates.AppClientAccount.newFromApiEndpoint(navData.streamId, navData.apiEndpoint, navData.name);
+  }
+  return appClient;
 }
 
-function navGetData() {
-  const cookieContent = CookieUtils.get(COOKIE_KEY);
+
+const COOKIE_KEY = 'hds-app-client';
+function navSetData(data, cookieKey = COOKIE_KEY) {
+  if (data == null) return CookieUtils.del(cookieKey, '/');
+  CookieUtils.set(cookieKey, data, 365, '/');
+  // debug 
+  const debugData = navGetData(cookieKey);
+  console.log('## navsetData ', {cookieKey, data, debugData});
+}
+
+function navGetData(cookieKey = COOKIE_KEY) {
+  const cookieContent = CookieUtils.get(cookieKey);
+  console.log('## Nav Get Data ', { cookieKey, cookieContent });
   const formKey = (new URLSearchParams(window.location.search)).get('formKey');
   return Object.assign({ formKey }, cookieContent);
 }
@@ -46,14 +59,15 @@ const pagesByTypes = {
   recurring: 'patient-history.html'
 };
 
-async function navGetPages(questionaryId) {
+async function navGetPages(collectorClient) {
   const pages = [{
     type: 'home',
     url: pagesByTypes.home,
     label: 'Home',
     formKey: null
   }];
-  const forms = await getForms(questionaryId);
+  const forms = collectorClient.requestData.app.data.forms;
+  console.log('## nav Forms', collectorClient.requestData);
   for (const [formKey, form] of Object.entries(forms)) {
     pages.push({
       type: form.type,
@@ -68,17 +82,12 @@ async function navGetPages(questionaryId) {
 
 // ---------------- form content ---------------- //
 
-function getFormTitle (questionaryId) {
-  return dataDefs.v2questionnaires[questionaryId].title;
-}
-
-async function getForms (questionaryId) {
-  return dataDefs.v2questionnaires[questionaryId].forms;
-}
 
 
-async function getFormHistorical (questionaryId, formKey) {
-  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+async function getFormHistorical (collectorClient, formKey) {
+  await initHDSModel();
+  const requestData = collectorClient.requestData;
+  const form = requestData.app.data.forms[formKey];
   const formFields = form.itemKeys.map((itemKey) => {
     const itemDef = (hdsModel().itemsDefs.forKey(itemKey));
     
@@ -99,8 +108,11 @@ async function getFormHistorical (questionaryId, formKey) {
  * @param {*} date 
  * @returns 
  */
-async function getFormPermanentContent (questionaryId, formKey) {
-  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+async function getFormPermanentContent (collectorClient, formKey) {
+  await initHDSModel();
+  const requestData = collectorClient.requestData;
+  const form = requestData.app.data.forms[formKey];
+  console.log('## getFormPermanentContent ', {form, formKey, collectorClient})
   // get formItems
   const formItemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
   // get the values from the API
@@ -113,8 +125,10 @@ async function getFormPermanentContent (questionaryId, formKey) {
     }
   }));
 
+
+
   const formContent = [];
-  const res = await connection.api(apiCalls);
+  const res = await collectorClient.app.connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
     const itemDef = formItemDefs[i];
@@ -141,8 +155,10 @@ async function getFormPermanentContent (questionaryId, formKey) {
 };
 
 
-async function getHistoricalContent(questionaryId, formKey) {
-  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+async function getHistoricalContent(collectorClient, formKey) {
+  await initHDSModel();
+  const requestData = collectorClient.requestData;
+  const form = requestData.app.data.forms[formKey];
   const itemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
   const tableHeaders = itemDefs.map(itemDef => ({
     fieldId: itemDef.key,
@@ -179,7 +195,7 @@ async function getHistoricalContent(questionaryId, formKey) {
       limit: 20, // last 20 of each item is enough for a demo
     }
   }));
-  const res = await connection.api(apiCalls);
+  const res = await collectorClient.app.connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
     if (e.events) {
@@ -273,7 +289,7 @@ function parseFloatCustom(value) {
   return parsedValue;
 }
 
-async function handleFormSubmit (formData, values, date) {
+async function handleFormSubmit (collectorClient, formData, formKey, values, date) {
   console.log('## handleForm', {formData, values, date});
   const apiCalls = [];
   for (const field of formData) {
@@ -329,6 +345,6 @@ async function handleFormSubmit (formData, values, date) {
     return;
   }
   // send the API calls
-  const res = await connection.api(apiCalls);
+  const res = await collectorClient.app.connection.api(apiCalls);
   console.log('## Form submitted', res);
 }

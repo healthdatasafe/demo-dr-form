@@ -9,25 +9,33 @@ import { navControler } from './patient-nav-controler.js'
 
 let navData;
 window.onload = async (event) => {
-  navData = await navControler.setNavComponents();
-  console.log('## navData', navData);
-  const { patientApiEndpoint, questionaryId, formKey } = navData;
-  console.log('## patientApiEndpoint:', patientApiEndpoint);
-  await patientLib.connect(patientApiEndpoint, questionaryId);
-  // - form title
+  // const get formKey
+  const formKey = (new URLSearchParams(window.location.search)).get('formKey');
+  const appClient = await patientLib.getAppClient();
+  const { collectorClientKey } = patientLib.navGetData();
+  const collectorClient = await appClient.getCollectorClientByKey(collectorClientKey);
+
+  await navControler.setNavComponents(collectorClient, formKey);
+
+  // form title
   const formTitle = document.getElementById('card-questionnary-details-title');
-  formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
+  const requestData = collectorClient.requestData;
+  const title = HDSLib.l(requestData.app.data.forms[formKey].title);
+  formTitle.innerHTML = title;
+
+  // set navData
+  navData = { appClient, collectorClient, formKey };
   refreshForm();
 }
 
 async function refreshForm () {
-  const { questionaryId, formKey } = navData;
+  const { appClient, collectorClient, formKey } = navData;
   // -- content
 ;  console.log()
-  const formData = await patientLib.getFormPermanentContent(questionaryId, formKey)
+  const formData = await patientLib.getFormPermanentContent(collectorClient, formKey)
   updateFormContent(formData);
   document.getElementById('submit-button-list').onclick =  function () { 
-    submitForm(formData); 
+    submitForm(collectorClient, formData, formKey); 
   };
 }
 
@@ -72,7 +80,7 @@ async function updateFormContent(formData) {
 /**
  * Submit the form and send the data to the API
  */
-async function submitForm(formData) {
+async function submitForm(collectorClient, formData, formKey) {
   const values = {};
   for (let i = 0; i < formData.length; i++) {
     const field = formData[i];
@@ -85,6 +93,6 @@ async function submitForm(formData) {
       values[field.id] = formField.value.trim(); 
     }    
   }
-  await patientLib.handleFormSubmit(formData, values);
+  await patientLib.handleFormSubmit(collectorClient, formData, formKey, values);
   alert('Form submitted successfully');
 };
