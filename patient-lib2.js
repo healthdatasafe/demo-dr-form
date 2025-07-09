@@ -9,7 +9,6 @@ export const patientLib = {
   getAppClient,
   // old
   handleFormSubmit,
-  getFormTitle,
   getFormPermanentContent,
   getFormHistorical,
   getHistoricalContent,
@@ -98,17 +97,12 @@ async function navGetPages(collectorClient) {
 
 // ---------------- form content ---------------- //
 
-function getFormTitle (questionaryId) {
-  return dataDefs.v2questionnaires[questionaryId].title;
-}
-
-async function getForms (questionaryId) {
-  return dataDefs.v2questionnaires[questionaryId].forms;
-}
 
 
-async function getFormHistorical (questionaryId, formKey) {
-  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+async function getFormHistorical (collectorClient, formKey) {
+  await initHDSModel();
+  const requestData = collectorClient.requestData;
+  const form = requestData.app.data.forms[formKey];
   const formFields = form.itemKeys.map((itemKey) => {
     const itemDef = (hdsModel().itemsDefs.forKey(itemKey));
     
@@ -176,8 +170,10 @@ async function getFormPermanentContent (collectorClient, formKey) {
 };
 
 
-async function getHistoricalContent(questionaryId, formKey) {
-  const form = dataDefs.v2questionnaires[questionaryId].forms[formKey];
+async function getHistoricalContent(collectorClient, formKey) {
+  await initHDSModel();
+  const requestData = collectorClient.requestData;
+  const form = requestData.app.data.forms[formKey];
   const itemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
   const tableHeaders = itemDefs.map(itemDef => ({
     fieldId: itemDef.key,
@@ -214,7 +210,7 @@ async function getHistoricalContent(questionaryId, formKey) {
       limit: 20, // last 20 of each item is enough for a demo
     }
   }));
-  const res = await connection.api(apiCalls);
+  const res = await collectorClient.app.connection.api(apiCalls);
   for (let i = 0; i < res.length; i++) {
     const e = res[i];
     if (e.events) {
@@ -308,7 +304,7 @@ function parseFloatCustom(value) {
   return parsedValue;
 }
 
-async function handleFormSubmit (formData, values, date) {
+async function handleFormSubmit (collectorClient, formData, formKey, values, date) {
   console.log('## handleForm', {formData, values, date});
   const apiCalls = [];
   for (const field of formData) {
@@ -364,6 +360,6 @@ async function handleFormSubmit (formData, values, date) {
     return;
   }
   // send the API calls
-  const res = await connection.api(apiCalls);
+  const res = await collectorClient.app.connection.api(apiCalls);
   console.log('## Form submitted', res);
 }

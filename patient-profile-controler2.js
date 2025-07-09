@@ -35,7 +35,7 @@ async function refreshForm () {
   const formData = await patientLib.getFormPermanentContent(collectorClient, formKey)
   updateFormContent(formData);
   document.getElementById('submit-button-list').onclick =  function () { 
-    submitForm(formData); 
+    submitForm(collectorClient, formData, formKey); 
   };
 }
 
@@ -80,7 +80,7 @@ async function updateFormContent(formData) {
 /**
  * Submit the form and send the data to the API
  */
-async function submitForm(formData) {
+async function submitForm(collectorClient, formData, formKey) {
   const values = {};
   for (let i = 0; i < formData.length; i++) {
     const field = formData[i];
@@ -93,6 +93,6 @@ async function submitForm(formData) {
       values[field.id] = formField.value.trim(); 
     }    
   }
-  await patientLib.handleFormSubmit(formData, values);
+  await patientLib.handleFormSubmit(collectorClient, formData, formKey, values);
   alert('Form submitted successfully');
 };

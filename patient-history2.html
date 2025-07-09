@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="icon" href="https://healthdatasafe.github.io/style/images/Favicon/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="https://healthdatasafe.github.io/style/hds.min.css">
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400">
+  <title>Demo Form - Patient's page</title>
+</head>
+<script src="https://whatever.backloop.dev:5553/hds-lib.js"></script>
+<script type="module" src="patient-history-controler2.js"></script>
+
+<body>
+  <div class="container">
+    <a href="https://www.healthdatasafe.org" target="_hds"><img src="https://healthdatasafe.github.io/style/images/Horizontal/hds-logo-hz-1024x400-hz-color.png" alt="Logo" width="300px"></a>
+    <h1>Demo Form - Patient's page</h1>
+    <div class="card">
+      <div class="card-header">
+        <div id="card-nav"></div>
+      </div>
+    </div>
+    <div class="card" id="card-content" >
+      <form id="form-history">
+        <h2 class="card-title"> Questionnaire: <span id="card-questionnary-details-title"></span></h2>
+        <h3 class="card-title"> Question set: <span id="card-questionnary-details-question-set">Historical Data</span></h3>
+        <div class="form-group">
+          <label for="form-date">Entry date</label>
+          <input type="date" id="form-date" class="form-control"/>
+          <div class="input-group" id="inputs-list">
+            <!-- HERE WILL GO THE INPUTS-->
+          </div>
+        </div>
+        <button type="button" id="submit-button-list" class="btn btn-primary mb-2">Submit</button>
+      </form>
+      <hr>
+      <h3>History:</h3>
+      <table id="historical-data" class="table"></table>
+    </div>
+  </div>
+</body>
+
+</html>
