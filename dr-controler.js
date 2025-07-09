@@ -36,14 +36,16 @@ async function setQuestionnaries() {
     tbody.removeChild(tbody.firstChild);
   }
 
-  const quests = await drLib.getQuestionnaires();
-  for (const [key, value] of Object.entries(quests)) {
+  const appManaging = drLib.getAppManaging();
+
+  const collectors = await appManaging.getCollectors();
+  for (const collector of collectors) {
     const row = tbody.insertRow(-1);
     const cellQuestionnary = row.insertCell(-1);
-    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${value.title}</button>`;
-    questionnaryButtons[key] = cellQuestionnary.getElementsByTagName('button')[0];
+    cellQuestionnary.innerHTML = `<button type="button" class="btn btn-secondary mb-sm">${collector.name}</button>`;
+    questionnaryButtons[collector.id] = cellQuestionnary.getElementsByTagName('button')[0];
     cellQuestionnary.onclick = function () {
-      showQuestionnary(key);
+      showQuestionnary(collector.id);
     };
   };
 
@@ -74,12 +76,57 @@ async function showQuestionnary(questionaryId) {
     return;
   }
 
-  setSharingLink(questionaryId);
-  const {headers, patientsData} = await setPatientList(questionaryId);
+  const appManaging = drLib.getAppManaging();
+  // get questionnary (Controller) 
+  const collector = await appManaging.getCollectorById(questionaryId);
+  await collector.init(); // load controller data only when needed
+  // show details
+  const status = collector.statusData;
+  document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
+  console.log('## showQuestionnary', status);
+
+  // set create sharing button
+  document.getElementById('button-new-sharing').onclick = async () => {
+    const title = document.getElementById('title-new-sharing').value.trim();
+    if (title.length < 5){
+      alert('Sharing title too short (4 char min)');
+      return;
+    }
+    const options = { customData: { hello: 'bob' } }; // useless for now kept as reference, usage could be to pass userId in an other system
+    const invite = await collector.createInvite(title, options);
+    const inviteSharingData = await invite.getSharingData();
+    console.log('## createInvite newInvite and sharing', { invite, inviteSharingData });
+    refreshInviteList(collector);
+  }
+
+  // show current pending invitations
+  await refreshInviteList(collector);
+
+  //const {headers, patientsData} = await setPatientList(questionaryId);
   document.getElementById('button-download').onclick = async () => {
     await exportXLSFile(headers, patientsData, 'patients');
   }
   document.getElementById('questionnary-view').style.display = 'block';
+}
+
+async function refreshInviteList(collector) {
+  const table = document.getElementById('invites-table');
+  // clear table
+  table.innerHTML = '';
+
+  // get all invites
+  const invites = await collector.getInvites();
+  invites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
+
+  for (const invite of invites) {
+    const inviteSharingData = await invite.getSharingData();
+    const row = table.insertRow(-1);
+    row.insertCell(-1).innerHTML = invite.displayName;
+    row.insertCell(-1).innerHTML = invite.status;
+    row.insertCell(-1).innerHTML = invite.dateCreation.toLocaleString();
+    row.insertCell(-1).innerHTML = getSharingLinkHTML(inviteSharingData);
+  }
+
 }
 
 /**
@@ -137,18 +184,14 @@ async function setPatientList(questionaryId) {
 /**
  * Creates the sharing link on the page
  */
-async function setSharingLink(questionaryId) {
+function getSharingLinkHTML(inviteSharingData) {
   const currentPage = window.location.href;
-  const posDrHTML = currentPage.indexOf('dr.html');
+  const posDrHTML = currentPage.indexOf('dr2.html');
   const patientURL = currentPage.substring(0, posDrHTML) + 'patient.html';
-
-  const formApiEndpoint = await drLib.getSharingToken(questionaryId);
-  const sharingLink = patientURL + '?formApiEndpoint=' + formApiEndpoint;
+  const sharingLink = `${patientURL}?apiEndpoint=${inviteSharingData.apiEndpoint}&eventId=${inviteSharingData.eventId}`;
   const sharingMailBody = 'Hello,\n\nI am sending you a link to fill out a form.\nPlease click on the link below to access the form: \n\n' + sharingLink + '\n\nBest regards,\nYour Doctor';
-  let sharingLinkHTML = `<A HREF="mailto:?subject=Invitation&body=${encodeURI(sharingMailBody)}">Send by email</A>`;
+  let sharingLinkHTML = `<A HREF="mailto:?subject=Invitation&body=${encodeURIComponent(sharingMailBody)}">Send by email</A>`;
   // add copy link
   sharingLinkHTML += ` - <A HREF="#" onclick="navigator.clipboard.writeText('${sharingLink}'); alert('Copied the sharing link to clipboard')">Copy link to clipboard</A>`;
-  
-  
-  document.getElementById('sharing-link').innerHTML = sharingLinkHTML;
+  return sharingLinkHTML;
 }

@@ -1,16 +1,34 @@
 import { dataDefs } from "./common-data-defs.js";
 import { connectAPIEndpoint, hdsModel, serviceInfoUrl } from "./common-lib.js"
 
+// OLD
 const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-dr'
 let drConnection = null;
 
+// NEW
+/** The "base" stream for this App */
+const APP_MANAGING_STREAMID = 'app-dr-hds';
+/** The name of this application */
+const APP_MANAGING_NAME = 'HDS Dr App PoC';
+/** The app Manging */
+let appManaging; // initalized during pryvAuthStateChange
+
 export const drLib = {
+  // OK for v2
   showLoginButton,
+  getAppManaging,
+  // OLD
   getSharingToken,
   getPatientsList,
-  getFirstFormFields,
-  getQuestionnaires,
+  getFirstFormFields
 };
+
+/**
+ * exposes appManaging for the app 
+ */
+function getAppManaging () {
+  return appManaging;
+}
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
   const authSettings = {
@@ -18,15 +36,19 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     onStateChange: pryvAuthStateChange, // event Listener for Authentication steps
     authRequest: {
       // See: https://api.pryv.com/reference/#auth-request
-      requestingAppId: dataDefs.appId, // to customize for your own app
+      requestingAppId: APP_MANAGING_STREAMID, // to customize for your own app
       requestedPermissions: [
         {
-          streamId: appDrStreamId,
-          defaultName: "Demo Forms drManagement",
+          streamId: APP_MANAGING_STREAMID,
+          defaultName: APP_MANAGING_NAME,
           level: "manage",
         },
       ],
       clientData: {
+        'app-web-auth:ensureBaseStreams': [ // this is handled by custom app web Auth3 (might be migrated in permission request)
+          { id: 'applications', name: 'Applications' },
+          { id: APP_MANAGING_STREAMID, name: APP_MANAGING_NAME, parentId: 'applications' }
+        ],
         "app-web-auth:description": {
           type: "note/txt",
           content:
@@ -43,19 +65,79 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     // called each time the authentication state changes
     console.log("##pryvAuthStateChange", state);
     if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
-      drConnection = await connectAPIEndpoint(state.apiEndpoint);
+      await initDemoAccount(state.apiEndpoint);
       stateChangeCallBack("loggedIN");
     }
     if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
       drConnection = null;
+      appManaging = null;
       stateChangeCallBack("loggedOUT");
     }
   }
 }
 
-// -------- Questionnaties -----
-async function getQuestionnaires() {
-  return dataDefs.v2questionnaires;
+/** 
+ * Right after beeing logged in.
+ * Check if the account has the two forms 
+ * This step will be implemented in the dr's App when the "create form" will be developped
+ * */
+async function initDemoAccount (apiEndpoint) {
+  drConnection = await connectAPIEndpoint(apiEndpoint);
+  const drConnectionInfo = await drConnection.accessInfo();
+  console.log('## initDemoAccount - drConnectionInfo', drConnectionInfo);
+  appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromConnection(APP_MANAGING_STREAMID, drConnection);
+
+  // -- check current collectors (forms)
+  const collectors = await appManaging.getCollectors();
+  for (const [questionaryId, questionary] of Object.entries(dataDefs.v2questionnaires)) {
+    // check if collector exists
+    const found = collectors.find(c => c.name === questionary.title);
+    if (found) { 
+      console.log('##2 initDemoAccount found', found);
+      continue; // stop here if exists
+    }
+    console.log('##2 initDemoAccount creating collector for', questionary);
+    const newCollector = await appManaging.createCollector(questionary.title);
+    
+    // create the request content 
+    // 1- get all items form the questionnary sections
+    const itemKeys = [];
+    for (const formContent of Object.values(questionary.forms)) {
+      itemKeys.push(...formContent.itemKeys);
+    }
+    // 2 - get the permissions with eventual preRequest 
+    const preRequest = questionary.permissionsPreRequest || [];
+    const permissions = hdsModel().authorizations.forItemKeys(itemKeys, { preRequest });
+    
+    const requestContent = {
+      version: '0',
+      title: {
+        en: questionary.title
+      },
+      requester: {
+        name: 'Username ' + drConnectionInfo.user.username
+      },
+      description: {
+        en: 'Short Description to be updated: ' + questionary.title
+      },
+      consent: {
+        en: 'This is a consent message to be set'
+      },
+      permissions,
+      app: {
+        id: 'dr-form',
+        url: 'https://xxx.yyy',
+        data: { // will be used by patient app
+          forms: questionary.forms
+        } 
+      }
+    };
+    newCollector.statusData.requestContent = requestContent;
+    await newCollector.save(); // save the data (done when the form is edited)
+    await newCollector.publish();
+    console.log('##2 initDemoAccount published', newCollector);
+  }
+  console.log('##2 initDemoAccount with ', collectors);
 }
 
 // -------- Fetch patient list --------

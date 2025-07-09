@@ -11,8 +11,7 @@
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:300,400">
   <title>Demo Form - Dr's page</title>
 </head>
-<script src="https://pryv.github.io/lib-js/pryv.js"></script>
-<script src="https://healthdatasafe.github.io/hds-lib-js/hds-lib.js"></script>
+<script src="https://whatever.backloop.dev:5553/hds-lib.js"></script>
 <script type="module" src="dr-controler.js"></script>
 
 <body style="background-color:powderblue;">
@@ -48,8 +47,16 @@
       
       <div id="questionnary-view">
         <div class="card">
-          <h2 class="card-title">Sharing link</h2>
+          <h2 class="card-title">Request Content</h2>
+          <pre id="requestContent"></pre>
+
+          <h2 class="card-title">Create Sharing link</h2>
+          <input type="text" id="title-new-sharing"/><button id="button-new-sharing">Create</button>
           <span id="sharing-link"></span>
+
+          <h2 class="card-title">Pending invites</h2>
+          <table id='invites-table' class="table">
+          </table>
         </div>
         <div class="card">
           <h2 class="card-title">Patients</h2>
