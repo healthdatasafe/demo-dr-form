@@ -17,6 +17,7 @@ export const drLib = {
   // OK for v2
   showLoginButton,
   getAppManaging,
+  getPatientDetails,
   // OLD
   getSharingToken,
   getPatientsList,
@@ -203,59 +204,28 @@ async function getPatientsList(questionaryId, limit = 100) {
 /**
  * get patients details
  */
-async function getPatientDetails(questionaryId, patientEvent) {
-  // -- check if the event is a patient event
-  const qStreams = questionnaryStreams(questionaryId);
-  if (patientEvent.type !== "credentials/pryv-api-endpoint") return null;
+async function getPatientDetails(invite, itemDefs) {
   const patient = {
-    status: "active",
-    apiEndpoint: patientEvent.content,
+    status: invite.status,
+    inviteName: invite.displayName,
+    createdAt: invite.dateCreation.toLocaleString(),
     formData: {},
   };
-  const patientConnection = await connectAPIEndpoint(patient.apiEndpoint);
 
-  // -- get patient data
-  if (!patientEvent.streamIds.includes(qStreams.revoked)) {
-    // -- get patient info
-    try {
-      const patientInfo = await patientConnection.accessInfo();
-      patient.username = patientInfo.user.username;
-    } catch (e) {
-      console.error("## Error getting patient info: " + patient.apiEndpoint, e);
-      // -- mark as revoked
-      const revokeRequest = await drConnection.api([
-        {
-          method: "events.update",
-          params: {
-            id: patientEvent.id,
-            update: {
-              streamIds: [qStreams.revoked],
-            },
-          },
-        },
-      ]);
-      console.log("## Patient marked as revoked", revokeRequest);
-      patientEvent.streamIds = [qStreams.revoked];
-    }
-  }
-
-  // -- marked revoked
-  if (patientEvent.streamIds.includes(qStreams.revoked)) {
-    patient.status = "revoked";
-    const usernameFromApiEndpoint = patientEvent.content.split("/")[3];
-    patient.username =
-      patientEvent.clientData?.username || usernameFromApiEndpoint;
-    return patient;
+  // -- get patient info
+  try {
+    const patientInfo = await invite.connection.accessInfo();
+    patient.username = patientInfo.user.username;
+  } catch (e) {
+    console.error("## Error getting patient info: " + patient.apiEndpoint, e);
+    // -- mark as revoked
+    // TODO call invite.markRevoked();
   }
 
   // -- get data
-  // get profile form data
-  const formProfile = dataDefs.v2questionnaires[questionaryId].forms.profile;
-
-
+  
   // get the last value of each itemKey
-  const apiCalls = formProfile.itemKeys.map((itemKey) => {
-    const itemDef = hdsModel().itemsDefs.forKey(itemKey);
+  const apiCalls = itemDefs.map((itemDef) => {
     return {
       method: "events.get",
       params: {
@@ -266,7 +236,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
     };
   });
 
-  const profileEventsResults = await patientConnection.api(apiCalls);
+  const profileEventsResults = await invite.connection.api(apiCalls);
   for (const profileEventRes of profileEventsResults) {
     const profileEvent = profileEventRes?.events?.[0];
     if (!profileEvent) continue;
@@ -279,8 +249,7 @@ async function getPatientDetails(questionaryId, patientEvent) {
 /**
  * get the list of rows for the initial table
  */
-function getFirstFormFields(questionaryId) {
-  const forms = dataDefs.v2questionnaires[questionaryId].forms;
+function getFirstFormFields(forms) {
   const firstForm = Object.values(forms)[0];
   const itemDefs = [];
   for (const itemKey of firstForm.itemKeys) {

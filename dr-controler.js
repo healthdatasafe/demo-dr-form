@@ -70,7 +70,7 @@ function highlightQuestionnaryButton(questionaryId) {
 
 async function showQuestionnary(questionaryId) {
   highlightQuestionnaryButton(questionaryId);
-  console.log('## showQuestionnary', questionaryId);
+  console.log('## showQuestionnaryId', questionaryId);
   if (questionaryId == null) {
     document.getElementById('questionnary-view').style.display = 'none';
     return;
@@ -102,6 +102,9 @@ async function showQuestionnary(questionaryId) {
   // show current pending invitations
   await refreshInviteList(collector);
 
+  // show current patients 
+  await setPatientList(collector);
+
   //const {headers, patientsData} = await setPatientList(questionaryId);
   document.getElementById('button-download').onclick = async () => {
     await exportXLSFile(headers, patientsData, 'patients');
@@ -110,20 +113,28 @@ async function showQuestionnary(questionaryId) {
 }
 
 async function refreshInviteList(collector) {
+   // check inbox for new incoming accepted requests
+  const newCollectorInvites = await collector.checkInbox();
+
+  console.log('## refreshInviteList inbox ', newCollectorInvites);
+
   const table = document.getElementById('invites-table');
   // clear table
   table.innerHTML = '';
 
   // get all invites
-  const invites = await collector.getInvites();
-  invites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
+  const invites = await collector.getInvites(); // Todo add a "filter by" maybe only list "Pending" invites
+  const pendingInvites = invites.filter(i => i.status === 'Pending');
+  pendingInvites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
 
-  for (const invite of invites) {
-    const inviteSharingData = await invite.getSharingData();
+  console.log('## refreshInviteList current ', pendingInvites);
+
+  for (const invite of pendingInvites) { 
     const row = table.insertRow(-1);
     row.insertCell(-1).innerHTML = invite.displayName;
     row.insertCell(-1).innerHTML = invite.status;
     row.insertCell(-1).innerHTML = invite.dateCreation.toLocaleString();
+    const inviteSharingData = await invite.getSharingData();
     row.insertCell(-1).innerHTML = getSharingLinkHTML(inviteSharingData);
   }
 
@@ -132,45 +143,65 @@ async function refreshInviteList(collector) {
 /**
  * Update the patient list
  */
-async function setPatientList(questionaryId) {
+async function setPatientList(collector) {
   const table = document.getElementById('patients-table');
+
+  const requestContent = collector.statusData.requestContent;
+  console.log('## collector requestContent', requestContent);
+
   // clear table
   table.innerHTML = '';
-  const itemDefs = drLib.getFirstFormFields(questionaryId);
-  const headers = {
+  const itemDefs = drLib.getFirstFormFields(requestContent.app.data.forms);
+  const staticHeaders = {
     status: 'Status',
-    username: 'Username'
+    inviteName: 'Invite',
+    username: 'Username',
+    createdAt: 'Date'
   }
+  const headers = structuredClone(staticHeaders);
+
   // --- headers
   const headerRow = table.insertRow(-1);
-  const headerStatusCell = document.createElement("TH");
-  headerStatusCell.innerHTML = 'Status';
-  headerRow.appendChild(headerStatusCell);
-  const headerUserCell = document.createElement("TH");
-  headerUserCell.innerHTML = 'Username';
-  headerRow.appendChild(headerUserCell);
+  for (const [key, value] of Object.entries(headers)) {
+    const headerStatusCell = document.createElement("TH");
+    headerStatusCell.innerHTML = value;
+    headerRow.appendChild(headerStatusCell);
+  }
+
   for (const itemDef of itemDefs) {
     const headerCell = document.createElement("TH");
-    headerCell.innerHTML = itemDef.data.label.en;
+    headerCell.innerHTML = HDSLib.l(itemDef.data.label);
     headerRow.appendChild(headerCell);
-    headers[itemDef.key] = itemDef.data.label.en;
+    headers[itemDef.key] = HDSLib.l(itemDef.data.label);
   }
 
   // --- patients
-  const patients = await drLib.getPatientsList(questionaryId, 100);
-  const patientsData = [];
-  for (const patient of Object.values(patients)) {
-    const row = table.insertRow(-1);
 
-    const cellStatus = row.insertCell(-1);
-    cellStatus.innerHTML = patient.status;
-    const cellUsername = row.insertCell(-1);
-    const page = `dr-patient-view.html?patientApiEndpoint=${patient.apiEndpoint}&questionaryId=${questionaryId}`;
-    cellUsername.innerHTML = `<A HREF="${page}">${patient.username}</A>`;
-    const patientData = {
-      status: patient.status,
-      username: patient.username
+  // get all invites
+  const invites = await collector.getInvites(); 
+  const pendingInvites = invites.filter(i => i.status !== 'Pending');
+  pendingInvites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
+
+  // fetch patient data
+  const patientPromises = invites.map((invite) => 
+    drLib.getPatientDetails(invite, itemDefs)
+  );
+  const patientsResults = await Promise.all(patientPromises);
+  console.log('## patientsResults', patientsResults);
+
+  const patientsData = [];
+  for (const patient of patientsResults) {
+    const row = table.insertRow(-1);
+    const patientData = {};
+
+    for (const key of Object.keys(staticHeaders)) {
+      row.insertCell(-1).innerHTML = patient[key];
+      patientData[key] = patient[key];
     }
+    
+    const page = `dr-patient-view.html?collectorKey=${collector.key}`;
+    const link = `<A HREF="${page}">${patient.inviteName}</A>`;
+    
     for (const itemDef of itemDefs) {
       const value = patient.formData[itemDef.key]?.value;
       row.insertCell(-1).innerHTML = (value != null) ? value : '';
@@ -178,6 +209,7 @@ async function setPatientList(questionaryId) {
     }
     patientsData.push(patientData);
   }
+  // return this to be used by Excel Download
   return { headers, patientsData };
 }
 
