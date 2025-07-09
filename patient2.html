@@ -12,7 +12,7 @@
   <title>Demo Form - Patient's page</title>
 </head>
 <script src="https://whatever.backloop.dev:5553/hds-lib.js"></script>
-<script type="module" src="patient-home-controler.js"></script>
+<script type="module" src="patient-home-controler2.js"></script>
 
 <body>
   <div class="container">
@@ -56,6 +56,7 @@
         </span>
         <div id="card-questionnary-details-something" style="display: none;">
           <h3> Questionnaire: <span id="card-questionnary-details-title"></span></h3>
+          <div id="card-questionnary-details-description"></div>
           <table>
             <tr>
               <td>
@@ -72,6 +73,8 @@
               </td>
               <td>&nbsp; &nbsp;</td>
               <td>
+                <b>Consent: </b><span id="questionnary-details-consent"></span>
+                <br><br>
                 <button type="button" id="grant-access-button" class="btn btn-primary mb-2">Open</button>
                 <br><br>
                 <button type="button" id="revoke-access-button" class="btn btn-secondary mb-2">Revoke</button>
