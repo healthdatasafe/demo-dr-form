@@ -195,12 +195,14 @@ async function setPatientList(collector) {
     const patientData = {};
 
     for (const key of Object.keys(staticHeaders)) {
-      row.insertCell(-1).innerHTML = patient[key];
+      let text = patient[key];
       patientData[key] = patient[key];
+      if (key === 'inviteName') {
+        const page = `dr-patient-view.html?collectorKey=${collector.key}`;
+        text = `<A HREF="${page}">${patient.inviteName}</A>`;
+      }
+      row.insertCell(-1).innerHTML = text;
     }
-    
-    const page = `dr-patient-view.html?collectorKey=${collector.key}`;
-    const link = `<A HREF="${page}">${patient.inviteName}</A>`;
     
     for (const itemDef of itemDefs) {
       const value = patient.formData[itemDef.key]?.value;
