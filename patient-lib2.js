@@ -1,4 +1,3 @@
-import { dataDefs } from './common-data-defs.js';
 import { CookieUtils } from './CookieUtils.js';
 import { connectAPIEndpoint, hdsModel, initHDSModel } from "./common-lib.js"
 
@@ -7,26 +6,14 @@ export const patientLib = {
   // new
   navSaveAppClient,
   getAppClient,
-  // old
   handleFormSubmit,
   getFormPermanentContent,
   getFormHistorical,
   getHistoricalContent,
-  connect,
+  // old
   navSetData,
   navGetData,
   navGetPages
-}
-
-
-let connection = null;
-let _questionaryId = null;
-async function connect (apiEndpoint, questionaryId) {
-  connection = await connectAPIEndpoint(apiEndpoint);
-  _questionaryId = questionaryId;
-  const accessInfo = await connection.accessInfo();
-  console.log('## Patient connected', accessInfo);
-  return accessInfo;
 }
 
 // --------------- navigation - to be replaced if built-in framework ------- //
