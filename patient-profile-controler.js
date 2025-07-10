@@ -1,5 +1,7 @@
 import { patientLib } from './patient-lib.js';
-import { navControler } from './patient-nav-controler.js'
+import { navControler } from './patient-nav-controler.js';
+import { stateGetApp, stateGetData } from './common-lib.js';
+
 /**
  * UI management code. 
  * Relies on patientLib for API calls and data management
@@ -11,8 +13,8 @@ let navData;
 window.onload = async (event) => {
   // const get formKey
   const formKey = (new URLSearchParams(window.location.search)).get('formKey');
-  const appClient = await patientLib.getAppClient();
-  const { collectorClientKey } = patientLib.navGetData();
+  const appClient = await stateGetApp('client');
+  const { collectorClientKey } = stateGetData('collector');
   const collectorClient = await appClient.getCollectorClientByKey(collectorClientKey);
 
   await navControler.setNavComponents(collectorClient, formKey);

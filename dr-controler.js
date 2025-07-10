@@ -103,9 +103,9 @@ async function showQuestionnary(questionaryId) {
   await refreshInviteList(collector);
 
   // show current patients 
-  await setPatientList(collector);
+  await refreshPatientList(collector);
 
-  //const {headers, patientsData} = await setPatientList(questionaryId);
+  //const {headers, patientsData} = await refreshPatientList(questionaryId);
   document.getElementById('button-download').onclick = async () => {
     await exportXLSFile(headers, patientsData, 'patients');
   }
@@ -144,7 +144,9 @@ async function refreshInviteList(collector) {
 /**
  * Update the patient list
  */
-async function setPatientList(collector) {
+async function refreshPatientList(collector) {
+  const { headers, patientsData } = await drLib.getPatientsData(collector);
+
   const table = document.getElementById('patients-table');
 
   const requestContent = collector.statusData.requestContent;
@@ -152,65 +154,28 @@ async function setPatientList(collector) {
 
   // clear table
   table.innerHTML = '';
-  const itemDefs = drLib.getFirstFormFields(requestContent.app.data.forms);
-  const staticHeaders = {
-    status: 'Status',
-    inviteName: 'Invite',
-    username: 'Username',
-    createdAt: 'Date'
-  }
-  const headers = structuredClone(staticHeaders);
-
   // --- headers
   const headerRow = table.insertRow(-1);
   for (const [key, value] of Object.entries(headers)) {
-    const headerStatusCell = document.createElement("TH");
-    headerStatusCell.innerHTML = value;
-    headerRow.appendChild(headerStatusCell);
-  }
-
-  for (const itemDef of itemDefs) {
     const headerCell = document.createElement("TH");
-    headerCell.innerHTML = HDSLib.l(itemDef.data.label);
+    headerCell.innerHTML = value;
     headerRow.appendChild(headerCell);
-    headers[itemDef.key] = HDSLib.l(itemDef.data.label);
   }
 
   // --- patients
 
-  // get all invites
-  const invites = await collector.getInvites(); 
-  const activeInvites = invites.filter(i => i.status === 'active');
-  activeInvites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
-
-  // fetch patient data
-  const patientPromises = activeInvites.map((invite) => 
-    drLib.getPatientDetails(invite, itemDefs)
-  );
-  const patientsResults = await Promise.all(patientPromises);
-  console.log('## patientsResults', patientsResults);
-
-  const patientsData = [];
-  for (const patient of patientsResults) {
+  for (const patient of patientsData) {
     const row = table.insertRow(-1);
-    const patientData = {};
-
-    for (const key of Object.keys(staticHeaders)) {
+   
+    for (const key of Object.keys(headers)) {
       let text = patient[key];
-      patientData[key] = patient[key];
-      if (key === 'inviteName') {
-        const page = `dr-patient-view.html?collectorKey=${collector.key}`;
+      if (key === 'inviteName') { // for inviteName add a link
+        const page = `dr-patient-view.html?collectorId=${collector.id}&inviteKey=${patient.invite.key}`;
         text = `<A HREF="${page}">${patient.inviteName}</A>`;
       }
       row.insertCell(-1).innerHTML = text;
     }
     
-    for (const itemDef of itemDefs) {
-      const value = patient.formData[itemDef.key]?.value;
-      row.insertCell(-1).innerHTML = (value != null) ? value : '';
-      patientData[itemDef.key] = value;
-    }
-    patientsData.push(patientData);
   }
   // return this to be used by Excel Download
   return { headers, patientsData };

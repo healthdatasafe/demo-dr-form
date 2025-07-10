@@ -1,5 +1,6 @@
 import { patientLib } from './patient-lib.js';
 import { patientHomeLib } from './patient-home-lib.js';
+import { stateGetApp, stateSetData } from './common-lib.js';
 
 /**
  * UI management code. 
@@ -26,7 +27,7 @@ function stateChange(state) {
 
 async function refresh() {
   const inviteParams = getInviteParamsFromURL();
-  const appClient = patientHomeLib.getAppClient();
+  const appClient = await stateGetApp('client');
   if (inviteParams) {
     const collectorClient = await appClient.handleIncomingRequest(inviteParams.apiEndpoint, inviteParams.eventId);
     console.log('>>## refresh: new incoming request', collectorClient);
@@ -98,8 +99,7 @@ async function showFormDetails(collectorClient) {
   document.getElementById('card-questionnary-details-nothing').style.display = show ? 'none' : 'block';
   document.getElementById('card-questionnary-details-something').style.display= show ? 'block' : 'none';
   // clear navData
-  patientLib.navSetData(null);
-  console.log('## nav get data', patientLib.navGetData());
+  stateSetData(null, 'collector');
   if (!show) return;
   const requestData = collectorClient.requestData;
   console.log('## showFormDetails', requestData);
@@ -136,7 +136,7 @@ async function showFormDetails(collectorClient) {
   const buttonRevoke = document.getElementById('revoke-access-button');
 
   // -- pass the current collector to the next page
-  patientLib.navSetData({ collectorClientKey: collectorClient.key });
+  stateSetData({ collectorClientKey: collectorClient.key }, 'collector');
 
   const nextPage = (await patientLib.navGetPages(collectorClient))[1].url;
   console.log('## detail ', collectorClient, collectorClient.status);

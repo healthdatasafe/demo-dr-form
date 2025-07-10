@@ -1,57 +1,15 @@
-import { CookieUtils } from './CookieUtils.js';
 import { hdsModel, initHDSModel } from "./common-lib.js"
 
 
 export const patientLib = {
-  navSaveAppClient,
-  getAppClient,
   handleFormSubmit,
   getFormPermanentContent,
   getFormHistorical,
   getHistoricalContent,
-  navSetData,
-  navGetData,
   navGetPages
 }
 
 // --------------- navigation - to be replaced if built-in framework ------- //
-
-
-function navSaveAppClient (appClient) {
-  console.log('## navSaveAppClient ', appClient);
-  const navData = appClient ? {
-    apiEndpoint: appClient.connection.apiEndpoint,
-    streamId: appClient.baseStreamId,
-    name: appClient.appName
-  } : null;
-  navSetData(navData, 'hds-app-client-app');
-}
-let appClient;
-async function getAppClient () {
-  if (appClient) return appClient;
-  const navData = navGetData('hds-app-client-app');
-  if (navData !== null) {
-    appClient = await HDSLib.appTemplates.AppClientAccount.newFromApiEndpoint(navData.streamId, navData.apiEndpoint, navData.name);
-  }
-  return appClient;
-}
-
-
-const COOKIE_KEY = 'hds-app-client';
-function navSetData(data, cookieKey = COOKIE_KEY) {
-  if (data == null) return CookieUtils.del(cookieKey, '/');
-  CookieUtils.set(cookieKey, data, 365, '/');
-  // debug 
-  const debugData = navGetData(cookieKey);
-  console.log('## navsetData ', {cookieKey, data, debugData});
-}
-
-function navGetData(cookieKey = COOKIE_KEY) {
-  const cookieContent = CookieUtils.get(cookieKey);
-  console.log('## Nav Get Data ', { cookieKey, cookieContent });
-  const formKey = (new URLSearchParams(window.location.search)).get('formKey');
-  return Object.assign({ formKey }, cookieContent);
-}
 
 const pagesByTypes = {
   home: 'patient.html',

@@ -1,8 +1,6 @@
-import { serviceInfoUrl } from './common-lib.js';
-import { patientLib } from './patient-lib.js';
+import { serviceInfoUrl, stateSaveApp } from './common-lib.js';
 
 export const patientHomeLib = {
-  getAppClient,
   showLoginButton
 }
 
@@ -12,13 +10,7 @@ export const patientHomeLib = {
 // NEW
 const APP_CLIENT_NAME = 'HDS Patient app PoC';
 const APP_CLIENT_STREAMID = 'app-client-dr-form'; // also used as "appId"
-/** the client app */
-let appClient; // initalized during pryvAuthStateChange
 
-
-function getAppClient() {
-  return appClient;
-}
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
  
@@ -47,13 +39,12 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
    async function pryvAuthStateChange(state) { // called each time the authentication state changes
      console.log('##pryvAuthStateChange', state);
      if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
-       appClient = await HDSLib.appTemplates.AppClientAccount.newFromApiEndpoint(APP_CLIENT_STREAMID, state.apiEndpoint, APP_CLIENT_NAME);
-       patientLib.navSaveAppClient(appClient);
+       const appClient = await HDSLib.appTemplates.AppClientAccount.newFromApiEndpoint(APP_CLIENT_STREAMID, state.apiEndpoint, APP_CLIENT_NAME);
+       stateSaveApp('client', appClient);
        stateChangeCallBack('loggedIN');
      }
      if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
-       appClient = null;
-       patientLib.navSaveAppClient(null);
+       stateSaveApp(null, 'client');
        stateChangeCallBack('loggedOUT');
      }
    }

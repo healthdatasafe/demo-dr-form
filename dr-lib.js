@@ -1,5 +1,5 @@
 import { dataDefs } from "./common-data-defs.js";
-import { connectAPIEndpoint, hdsModel, serviceInfoUrl } from "./common-lib.js"
+import { hdsModel, serviceInfoUrl, initHDSModel } from "./common-lib.js"
 
 // OLD
 const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-dr'
@@ -17,10 +17,9 @@ export const drLib = {
   // OK for v2
   showLoginButton,
   getAppManaging,
+  getPatientsData,
   getPatientDetails,
   // OLD
-  getSharingToken,
-  getPatientsList,
   getFirstFormFields
 };
 
@@ -66,11 +65,12 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     // called each time the authentication state changes
     console.log("##pryvAuthStateChange", state);
     if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
-      await initDemoAccount(state.apiEndpoint);
+      await initHDSModel(); // hds model needs to be initialized 
+      appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromApiEndpoint(APP_MANAGING_STREAMID, state.apiEndpoint, APP_MANAGING_NAME);
+      await initDemoAccount(appManaging);
       stateChangeCallBack("loggedIN");
     }
     if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
-      drConnection = null;
       appManaging = null;
       stateChangeCallBack("loggedOUT");
     }
@@ -82,11 +82,10 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
  * Check if the account has the two forms 
  * This step will be implemented in the dr's App when the "create form" will be developped
  * */
-async function initDemoAccount (apiEndpoint) {
-  drConnection = await connectAPIEndpoint(apiEndpoint);
-  const drConnectionInfo = await drConnection.accessInfo();
-  console.log('## initDemoAccount - drConnectionInfo', drConnectionInfo);
-  appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromConnection(APP_MANAGING_STREAMID, drConnection);
+async function initDemoAccount (appManaging) {
+  // name should be better than "username" - to be changed
+  const drConnectionInfo = await appManaging.connection.accessInfo();
+  const drUserName = drConnectionInfo.user.username;
 
   // -- check current collectors (forms)
   const collectors = await appManaging.getCollectors();
@@ -116,7 +115,7 @@ async function initDemoAccount (apiEndpoint) {
         en: questionary.title
       },
       requester: {
-        name: 'Username ' + drConnectionInfo.user.username
+        name: 'Username ' + drUserName,
       },
       description: {
         en: 'Short Description to be updated: ' + questionary.title
@@ -143,73 +142,49 @@ async function initDemoAccount (apiEndpoint) {
 
 // -------- Fetch patient list --------
 
-const patients = {};
-
-async function getPatientsList(questionaryId, limit = 100) {
-  const qStreams = questionnaryStreams(questionaryId);
-  const res = await drConnection.api([
-    {
-      method: "events.get",
-      params: {
-        types: ["credentials/pryv-api-endpoint"],
-        limit,
-        streams: [qStreams.questionnary.id],
-      },
-    },
-  ]);
-  const patientApiEndpointEvents = res[0].events;
-
-  // -- remove duplicates
-  const duplicateEventId = [];
-  const uniques = {};
-  for (const patientEvent of patientApiEndpointEvents) {
-    if (patientEvent.type === "credentials/pryv-api-endpoint") {
-      const apiEndpoint = patientEvent.content;
-      if (uniques[apiEndpoint]) {
-        // -- duplicate
-        duplicateEventId.push(patientEvent.id);
-        console.log("## Duplicate patient event", patientEvent);
-      } else {
-        uniques[apiEndpoint] = patientEvent;
-      }
-    }
+async function getPatientsData (collector) {
+  const requestContent = collector.statusData.requestContent;
+  console.log('## collector requestContent', requestContent);
+  // static headers
+  const headers = {
+    status: 'Status',
+    inviteName: 'Invite',
+    username: 'Username',
+    createdAt: 'Date'
   }
-  if (duplicateEventId.length > 0) {
-    const removeDuplicatesApiCalls = duplicateEventId.map((id) => ({
-      method: "events.delete",
-      params: { id },
-    }));
-    const removeDuplicates = await drConnection.api(removeDuplicatesApiCalls);
-    console.log("## Removed duplicates", removeDuplicates);
+  // headers from first form 
+  const itemDefs = getFirstFormFields(requestContent.app.data.forms);
+  for (const itemDef of itemDefs) {
+    headers[itemDef.key] = HDSLib.l(itemDef.data.label);
   }
 
-  // -- get the patients
-  const patientPromises = Object.values(uniques).map((patientEvent) =>
-    getPatientDetails(questionaryId, patientEvent)
+  // add lines (1 per patient)
+  const invites = await collector.getInvites(); 
+  const activeInvites = invites.filter(i => i.status === 'active');
+  
+
+  // fetch patient data
+  const patientPromises = activeInvites.map((invite) => 
+    drLib.getPatientDetails(invite, itemDefs)
   );
-  const patientsResults = await Promise.all(patientPromises);
-
-  const patients = {};
-  for (const patient of patientsResults) {
-    if (patient) {
-      patients[patient.apiEndpoint] = patient;
-      console.log("## Patient details", patient);
-    }
-  }
-
-  console.log("## Patients list", patients);
-  return patients;
+  const patientsData = await Promise.all(patientPromises);
+  patientsData.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
+  console.log('## patientsResults', patientsData);
+  
+  return { headers, patientsData }
 }
+
 
 /**
  * get patients details
  */
 async function getPatientDetails(invite, itemDefs) {
   const patient = {
+    invite,
     status: invite.status,
     inviteName: invite.displayName,
     createdAt: invite.dateCreation.toLocaleString(),
-    formData: {},
+    dateCreation: invite.dateCreation // keep it as a date for sorting
   };
 
   // -- get patient info
@@ -241,7 +216,7 @@ async function getPatientDetails(invite, itemDefs) {
     const profileEvent = profileEventRes?.events?.[0];
     if (!profileEvent) continue;
     const field = dataFieldFromEvent(profileEvent);
-    patient.formData[field.key] = field;
+    patient[field.key] = ( field.value != null) ? field.value : '' ;
   }
   return patient;
 }
@@ -288,101 +263,4 @@ function dataFieldFromEvent(event) {
   return field;
 }
 
-// -------- questionnary streams ---- //
-function questionnaryStreams(questionaryId) {
-  const questionnaryStreamId = appDrStreamId + "-" + questionaryId;
-  return {
-    questionnary: { id: questionnaryStreamId, name: questionaryId },
-    inbox: {
-      id: questionnaryStreamId + "-inbox",
-      name: questionaryId + " Inbox",
-    },
-    revoked: {
-      id: questionnaryStreamId + "-revoked",
-      name: questionaryId + " Revoked",
-    },
-  };
-}
 
-// -------- init functions -------- //
-
-/**
- * Initialize or get the sharing token for patients
- * @returns
- */
-async function getSharingToken(questionaryId) {
-  const sharedAccessId = dataDefs.appId + "-" + questionaryId;
-  const accessesCheckRes = await drConnection.api([
-    { method: "accesses.get", params: {} },
-  ]);
-  const sharedAccess = accessesCheckRes[0].accesses.find(
-    (access) => access.name === sharedAccessId
-  );
-
-  const qStreams = questionnaryStreams(questionaryId);
-
-  if (sharedAccess) {
-    console.log("## Dr account already has a shared access");
-    return sharedAccess.apiEndpoint;
-  }
-  // make sure streams for questionary Exists
-
-  const resultStreamAndAccess = await drConnection.api([
-    {
-      method: "streams.create", // make sure streamId with sharedAccessId exists
-      params: {
-        id: qStreams.questionnary.id,
-        name: qStreams.questionnary.name,
-        parentId: appDrStreamId,
-      }
-    },
-    {
-      method: "streams.create",
-      params: {
-        id: qStreams.inbox.id,
-        name: qStreams.inbox.name,
-        parentId: qStreams.questionnary.id,
-      }
-    },
-    {
-      method: "streams.create",
-      params: {
-        id: qStreams.revoked.id,
-        name: qStreams.revoked.name,
-        parentId: qStreams.questionnary.id,
-      }
-    },
-    {
-      // create access
-      method: "accesses.create",
-      params: {
-        name: sharedAccessId,
-        type: "shared",
-        permissions: [
-          {
-            streamId: qStreams.inbox.id,
-            level: "create-only",
-          },
-          {
-            // for "publicly shared access" always forbid the selfRevoke feature
-            feature: "selfRevoke",
-            setting: "forbidden",
-          },
-          {
-            // for "publicly shared access" always forbid the selfAudit feature
-            feature: "selfAudit",
-            setting: "forbidden",
-          },
-        ],
-        clientData: {
-          [dataDefs.appId]: {
-            questionaryId,
-            inboxStreamId: qStreams.inbox.id,
-          }
-        }
-      }
-    },
-  ]);
-  console.log("## Dr account shared access created", resultStreamAndAccess);
-  return resultStreamAndAccess[3].access.apiEndpoint;
-}
