@@ -1,3 +1,4 @@
+import { stateGetApp } from './common-lib.js';
 import { drLib } from './dr-lib.js';
 import { exportXLSFile } from './exporToXLS.js';
 
@@ -36,7 +37,7 @@ async function setQuestionnaries() {
     tbody.removeChild(tbody.firstChild);
   }
 
-  const appManaging = drLib.getAppManaging();
+  const appManaging = await stateGetApp('managing');
 
   const collectors = await appManaging.getCollectors();
   for (const collector of collectors) {
@@ -76,7 +77,7 @@ async function showQuestionnary(questionaryId) {
     return;
   }
 
-  const appManaging = drLib.getAppManaging();
+  const appManaging = await stateGetApp('managing');
   // get questionnary (Controller) 
   const collector = await appManaging.getCollectorById(questionaryId);
   await collector.init(); // load controller data only when needed
@@ -103,7 +104,7 @@ async function showQuestionnary(questionaryId) {
   await refreshInviteList(collector);
 
   // show current patients 
-  await refreshPatientList(collector);
+  const {headers, patientsData} = await refreshPatientList(collector);
 
   //const {headers, patientsData} = await refreshPatientList(questionaryId);
   document.getElementById('button-download').onclick = async () => {

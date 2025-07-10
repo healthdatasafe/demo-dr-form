@@ -7,25 +7,12 @@ import { hdsModel, serviceInfoUrl, initHDSModel, stateSaveApp } from "./common-l
 const APP_MANAGING_STREAMID = 'app-dr-hds';
 /** The name of this application */
 const APP_MANAGING_NAME = 'HDS Dr App PoC';
-/** The app Manging */
-let appManaging; // initalized during pryvAuthStateChange
 
 export const drLib = {
-  // OK for v2
   showLoginButton,
-  getAppManaging,
   getPatientsData,
-  getPatientDetails,
-  // OLD
-  getFirstFormFields
+  getPatientDetails
 };
-
-/**
- * exposes appManaging for the app 
- */
-function getAppManaging () {
-  return appManaging;
-}
 
 function showLoginButton (loginSpanId, stateChangeCallBack) {
   const authSettings = {
@@ -63,13 +50,12 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     console.log("##pryvAuthStateChange", state);
     if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
       await initHDSModel(); // hds model needs to be initialized 
-      appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromApiEndpoint(APP_MANAGING_STREAMID, state.apiEndpoint, APP_MANAGING_NAME);
+      const appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromApiEndpoint(APP_MANAGING_STREAMID, state.apiEndpoint, APP_MANAGING_NAME);
       stateSaveApp('managing', appManaging);
       await initDemoAccount(appManaging);
       stateChangeCallBack("loggedIN");
     }
     if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
-      appManaging = null;
       stateSaveApp('managing', null);
       stateChangeCallBack("loggedOUT");
     }
@@ -152,8 +138,11 @@ async function getPatientsData (collector) {
     createdAt: 'Date'
   }
   // headers from first form 
-  const itemDefs = getFirstFormFields(requestContent.app.data.forms);
-  for (const itemDef of itemDefs) {
+  const firstForm = Object.values(requestContent.app.data.forms)[0];
+  const itemDefs = [];
+  for (const itemKey of firstForm.itemKeys) {
+    const itemDef = hdsModel().itemsDefs.forKey(itemKey);
+    itemDefs.push(itemDef);
     headers[itemDef.key] = HDSLib.l(itemDef.data.label);
   }
 
@@ -218,19 +207,6 @@ async function getPatientDetails(invite, itemDefs) {
     patient[field.key] = ( field.value != null) ? field.value : '' ;
   }
   return patient;
-}
-
-/**
- * get the list of rows for the initial table
- */
-function getFirstFormFields(forms) {
-  const firstForm = Object.values(forms)[0];
-  const itemDefs = [];
-  for (const itemKey of firstForm.itemKeys) {
-    itemDefs.push(hdsModel().itemsDefs.forKey(itemKey));
-  }
-  
-  return itemDefs;
 }
 
 /**
