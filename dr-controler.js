@@ -1,4 +1,4 @@
-import { stateGetApp } from './common-lib.js';
+import { hdsModel, initHDSModel, stateGetApp } from './common-lib.js';
 import { drLib } from './dr-lib.js';
 import { exportXLSFile } from './exporToXLS.js';
 
@@ -15,6 +15,7 @@ window.onload = (event) => {
 };
 
 async function stateChange(state) {
+  await initHDSModel();
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.display = 'none';
     document.getElementById('data-view').style.display = 'block';
@@ -83,7 +84,38 @@ async function showQuestionnary(questionaryId) {
   await collector.init(); // load controller data only when needed
   // show details
   const status = collector.statusData;
-  document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
+  
+  document.getElementById('request-title').innerHTML = HDSLib.l(status.requestContent.title);
+  document.getElementById('request-requester').innerHTML = status.requestContent.requester.name;
+  document.getElementById('request-description').innerHTML = HDSLib.l(status.requestContent.description);
+  document.getElementById('request-consent').innerHTML = HDSLib.l(status.requestContent.consent);
+  const permissionsStr = status.requestContent.permissions.map(p =>  `- ${p.defaultName} => ${p.level}`).join('<BR>\n');
+  document.getElementById('request-permissions').innerHTML = permissionsStr;
+  document.getElementById('request-app-id').innerHTML = status.requestContent.app.id;
+  document.getElementById('request-app-url').innerHTML = status.requestContent.app.url;
+  
+  // document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
+  // forms sections
+  const table = document.getElementById('forms-sections');
+  const keyTitles = { type: 'Type', name: 'Name', itemKeys: 'ItemKeys'};
+  
+  const forms = Object.values(status.requestContent.app.data.forms);
+  console.log('## forms', forms);
+  for (const [key, title] of Object.entries(keyTitles)) {
+    const row = table.insertRow(-1);
+    row.insertCell(-1).innerHTML = title;
+    for (const form of forms) {
+      let content = form[key];
+      if (key === 'itemKeys') {
+        content = content.map((itemKey) => {
+          const itemDef = hdsModel().itemsDefs.forKey(itemKey);
+          return '- ' + HDSLib.l(itemDef.data.label);
+        }).join('\n<br>');
+      }
+      row.insertCell(-1).innerHTML = content;
+    }
+  }  
+  
   console.log('## showQuestionnary', status);
 
   // set create sharing button
