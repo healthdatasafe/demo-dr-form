@@ -124,10 +124,11 @@ async function refreshInviteList(collector) {
 
   // get all invites
   const invites = await collector.getInvites(); // Todo add a "filter by" maybe only list "Pending" invites
-  const pendingInvites = invites.filter(i => i.status === 'Pending');
+  console.log('## refreshInviteList invites ', invites);
+  const pendingInvites = invites.filter(i => i.status === 'pending');
   pendingInvites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
 
-  console.log('## refreshInviteList current ', pendingInvites);
+  console.log('## refreshInviteList pending ', pendingInvites);
 
   for (const invite of pendingInvites) { 
     const row = table.insertRow(-1);
@@ -179,11 +180,11 @@ async function setPatientList(collector) {
 
   // get all invites
   const invites = await collector.getInvites(); 
-  const pendingInvites = invites.filter(i => i.status !== 'Pending');
-  pendingInvites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
+  const activeInvites = invites.filter(i => i.status === 'active');
+  activeInvites.sort((a, b) => b.dateCreation - a.dateCreation); // sort by creation date reverse
 
   // fetch patient data
-  const patientPromises = invites.map((invite) => 
+  const patientPromises = activeInvites.map((invite) => 
     drLib.getPatientDetails(invite, itemDefs)
   );
   const patientsResults = await Promise.all(patientPromises);

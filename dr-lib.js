@@ -217,7 +217,7 @@ async function getPatientDetails(invite, itemDefs) {
     const patientInfo = await invite.connection.accessInfo();
     patient.username = patientInfo.user.username;
   } catch (e) {
-    console.error("## Error getting patient info: " + patient.apiEndpoint, e);
+    console.error("## Error getting patient info from invite ", patient, invite, e);
     // -- mark as revoked
     // TODO call invite.markRevoked();
   }
