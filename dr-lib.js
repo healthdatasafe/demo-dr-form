@@ -1,9 +1,6 @@
 import { dataDefs } from "./common-data-defs.js";
-import { hdsModel, serviceInfoUrl, initHDSModel } from "./common-lib.js"
+import { hdsModel, serviceInfoUrl, initHDSModel, stateSaveApp } from "./common-lib.js"
 
-// OLD
-const appDrStreamId = dataDefs.appId + "-dr"; // simply use the appId + '-dr'
-let drConnection = null;
 
 // NEW
 /** The "base" stream for this App */
@@ -67,11 +64,13 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
       await initHDSModel(); // hds model needs to be initialized 
       appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromApiEndpoint(APP_MANAGING_STREAMID, state.apiEndpoint, APP_MANAGING_NAME);
+      stateSaveApp('managing', appManaging);
       await initDemoAccount(appManaging);
       stateChangeCallBack("loggedIN");
     }
     if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
       appManaging = null;
+      stateSaveApp('managing', null);
       stateChangeCallBack("loggedOUT");
     }
   }

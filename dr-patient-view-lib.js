@@ -6,41 +6,37 @@ export const drPatientLib = {
   setRefresh
 }
 
-let connection;
-async function setRefresh(patientApiEndoint, questionaryId, refreshCallBack) {
-  connection = await connectAPIEndpoint(patientApiEndoint);
-  const infos = await connection.accessInfo();
+async function setRefresh(invite, refreshCallBack) {
 
   async function doRefresh () {
-    const lines = await getPatientData(questionaryId); 
+    const lines = await getPatientData(invite); 
     refreshCallBack(lines);
   }
 
-  await connection.socket.open();
-  connection.socket.on('eventsChanged', async () => {
+  await invite.connection.socket.open();
+  invite.connection.socket.on('eventsChanged', async () => {
     await doRefresh();
   });
 
   // do it once
   doRefresh();
-  return infos;
 }
 
 
-async function getPatientData (questionaryId) {
+async function getPatientData (invite) {
   const patientData = [];
   const queryParams = { limit: 10000};
   function forEachEvent(event) {
-    patientData.push(getLineForEvent (event, questionaryId));
+    patientData.push(getLineForEvent (event));
   }
 
   
-  await connection.getEventsStreamed(queryParams, forEachEvent);
+  await invite.connection.getEventsStreamed(queryParams, forEachEvent);
   return patientData;
 }
 
 
-function getLineForEvent (event, questionaryId) {
+function getLineForEvent (event) {
   const model = hdsModel();
   const line = {
     time: (new Date(event.time * 1000)).toISOString(),

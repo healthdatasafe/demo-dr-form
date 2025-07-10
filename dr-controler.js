@@ -57,7 +57,7 @@ async function setQuestionnaries() {
 // ------- Get Dr's info -------- //
 function getQuestionnaryFromUrl() {
   const params = new URLSearchParams(document.location.search);
-  const questionaryId = params.get('questionaryId');
+  const questionaryId = params.get('collectorId');
   return questionaryId
 }
 
@@ -175,7 +175,7 @@ async function refreshPatientList(collector) {
       }
       row.insertCell(-1).innerHTML = text;
     }
-    
+
   }
   // return this to be used by Excel Download
   return { headers, patientsData };

@@ -44,7 +44,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
        stateChangeCallBack('loggedIN');
      }
      if (state.id === HDSLib.pryv.Browser.AuthStates.INITIALIZED) {
-       stateSaveApp(null, 'client');
+       stateSaveApp('client', null);
        stateChangeCallBack('loggedOUT');
      }
    }

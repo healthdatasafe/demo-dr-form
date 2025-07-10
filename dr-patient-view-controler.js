@@ -1,6 +1,7 @@
+import { initHDSModel, stateGetApp } from "./common-lib.js";
 import { drPatientLib  } from "./dr-patient-view-lib.js";
 import { exportXLSFile } from './exporToXLS.js';
-import { patientLib } from "./patient-lib.js";
+
 /**
  * Based on 
  * - drApiConnecion
@@ -11,24 +12,29 @@ import { patientLib } from "./patient-lib.js";
  */
 
 
-let infos;
-let username;
-let qId;
+let invite;
 window.onload = async (event) => {
-  const { patientApiEndpoint, questionaryId } = getRequestFrormApiEndPoint();
-  infos = await drPatientLib.setRefresh(patientApiEndpoint, questionaryId, refresh)
+  await initHDSModel();
+  // get collectorId & inviteKey from URL
+  const params = new URLSearchParams(document.location.search);
+  const collectorId = params.get('collectorId');
+  const inviteKey = params.get('inviteKey');
+
+  // get app from state management
+  const appManaging = await stateGetApp('managing');
+  const collector = await appManaging.getCollectorById(collectorId);
+  invite = await collector.getInviteByKey(inviteKey);
+  console.log('# Loaded with invite', invite);
+
+  await drPatientLib.setRefresh(invite, refresh)
   // -- home button
-  document.getElementById('home-button').href= 'dr.html?questionaryId=' + questionaryId;
+  document.getElementById('home-button').href= 'dr.html?collectorId=' + collectorId;
 
   // - form title
   const formTitle = document.getElementById('card-questionnary-details-title');
-  formTitle.innerHTML = patientLib.getFormTitle(questionaryId);
-  
-  qId = questionaryId;
+  formTitle.innerHTML = collector.name;
 
-  // -- set patient Id
-  username = infos.user.username;
-  document.getElementById('patient-label').innerHTML = username;
+  document.getElementById('patient-label').innerHTML = invite.displayName;
 }
 
 const tableHeaders = {
@@ -48,7 +54,7 @@ const downloadHeaders = Object.assign({
 async function refresh (lines) {
   // -- set download button
   document.getElementById('button-download').onclick = async () => {
-    await exportXLSFile(downloadHeaders, lines, username + '-' + qId);
+    await exportXLSFile(downloadHeaders, lines, invite.displayName + '-' + invite.collector.name);
   };
 
   // -- update table
@@ -69,12 +75,4 @@ async function refresh (lines) {
       cell.innerHTML = v != null ? v : '' ;
     }
   }
-}
-
-// ------- Get Dr's info -------- //
-function getRequestFrormApiEndPoint() {
-  const params = new URLSearchParams(document.location.search);
-  const patientApiEndpoint = params.get('patientApiEndpoint');
-  const questionaryId = params.get('questionaryId');
-  return { patientApiEndpoint, questionaryId };
 }
