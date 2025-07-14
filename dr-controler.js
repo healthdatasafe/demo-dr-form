@@ -97,6 +97,7 @@ async function showQuestionnary(questionaryId) {
   // document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
   // forms sections
   const table = document.getElementById('forms-sections');
+  table.innerHTML = '';
   const keyTitles = { type: 'Type', name: 'Name', itemKeys: 'ItemKeys'};
   
   const forms = Object.values(status.requestContent.app.data.forms);
@@ -116,7 +117,7 @@ async function showQuestionnary(questionaryId) {
     }
   }  
   
-  console.log('## showQuestionnary', status);
+  console.log('## showQuestionnary status:', status);
 
   // set create sharing button
   document.getElementById('button-new-sharing').onclick = async () => {
@@ -219,7 +220,7 @@ async function refreshPatientList(collector) {
  */
 function getSharingLinkHTML(inviteSharingData) {
   const currentPage = window.location.href;
-  const posDrHTML = currentPage.indexOf('dr2.html');
+  const posDrHTML = currentPage.indexOf('dr.html');
   const patientURL = currentPage.substring(0, posDrHTML) + 'patient.html';
   const sharingLink = `${patientURL}?apiEndpoint=${inviteSharingData.apiEndpoint}&eventId=${inviteSharingData.eventId}`;
   const sharingMailBody = 'Hello,\n\nI am sending you a link to fill out a form.\nPlease click on the link below to access the form: \n\n' + sharingLink + '\n\nBest regards,\nYour Doctor';

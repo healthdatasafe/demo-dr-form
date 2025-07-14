@@ -30,7 +30,7 @@ async function refresh() {
   const appClient = await stateGetApp('client');
   if (inviteParams) {
     const collectorClient = await appClient.handleIncomingRequest(inviteParams.apiEndpoint, inviteParams.eventId);
-    console.log('>>## refresh: new incoming request', collectorClient);
+    console.log('>>## refresh: new incoming request', collectorClient, collectorClient.key);
   }
   const collectorClients = await appClient.getCollectorClients();
   console.log('>>## refresh: collectorClients', collectorClients);
@@ -155,8 +155,16 @@ async function showFormDetails(collectorClient) {
   else {
     buttonOpen.innerHTML = 'Grant access and Open';
     buttonOpen.onclick = async function () {
-      await collectorClient.accept();
-      document.location.href = nextPage;
+      try {
+        const acceptResult = await collectorClient.accept();
+        if (acceptResult == null) throw new Error('Accepted result is empty');
+        console.log('## AcceptResult', acceptResult);
+        alert('Access successfully granted');
+        document.location.href = nextPage;
+      } catch (e) {
+        console.log(e);
+        alert('Error accepting: ' + e.message);
+      }
     };
     buttonRevoke.innerHTML = 'Refuse';
     buttonRevoke.onclick = async function () {
