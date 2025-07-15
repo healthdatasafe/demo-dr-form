@@ -148,7 +148,7 @@ async function showFormDetails(collectorClient) {
     buttonRevoke.innerHTML = 'Revoke';
     buttonRevoke.onclick = async function () {
       const doRevoke = confirm('Revoke ?');
-      if (doRevoke) patientHomeLib.revokeAccess(collectorClient);
+      if (doRevoke)  await collectorClient.revoke();;
       refresh();
     };
   }
@@ -168,8 +168,8 @@ async function showFormDetails(collectorClient) {
     };
     buttonRevoke.innerHTML = 'Refuse';
     buttonRevoke.onclick = async function () {
-      const doRevoke = confirm('Refuse ?');
-      if (doRevoke) patientHomeLib.revokeAccess(requestData);
+      const deRefuse = confirm('Refuse ?');
+      if (deRefuse) await collectorClient.refuse();
       refresh();
     }
   }

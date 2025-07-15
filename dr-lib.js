@@ -170,20 +170,17 @@ async function getPatientDetails(invite, itemDefs) {
   const patient = {
     invite,
     status: invite.status,
+    username: null,
     inviteName: invite.displayName,
     createdAt: invite.dateCreation.toLocaleString(),
     dateCreation: invite.dateCreation // keep it as a date for sorting
   };
+  console.log('## getPatientDetails.invite', invite, invite.status, invite.eventData.streamIds);
 
-  // -- get patient info
-  try {
-    const patientInfo = await invite.connection.accessInfo();
-    patient.username = patientInfo.user.username;
-  } catch (e) {
-    console.error("## Error getting patient info from invite ", patient, invite, e);
-    // -- mark as revoked
-    // TODO call invite.markRevoked();
-  }
+  // -- 
+  const patientInfo = await invite.checkAndGetAccessInfo();
+  if (patientInfo === null) return patient;
+  patient.username = patientInfo.user.username;
 
   // -- get data
   
