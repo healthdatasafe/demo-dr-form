@@ -1,4 +1,4 @@
-import { initHDSModel, stateGetApp } from "./common-lib.js";
+import { stateGetApp } from "./common-lib.js";
 import { drPatientLib  } from "./dr-patient-view-lib.js";
 import { exportXLSFile } from './exporToXLS.js';
 
@@ -14,7 +14,7 @@ import { exportXLSFile } from './exporToXLS.js';
 
 let invite;
 window.onload = async (event) => {
-  await initHDSModel();
+  await HDSLib.initHDSModel();
   // get collectorId & inviteKey from URL
   const params = new URLSearchParams(document.location.search);
   const collectorId = params.get('collectorId');

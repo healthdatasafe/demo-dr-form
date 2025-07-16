@@ -1,4 +1,4 @@
-import { hdsModel, initHDSModel, stateGetApp } from './common-lib.js';
+import { stateGetApp } from './common-lib.js';
 import { drLib } from './dr-lib.js';
 import { exportXLSFile } from './exporToXLS.js';
 
@@ -15,7 +15,7 @@ window.onload = (event) => {
 };
 
 async function stateChange(state) {
-  await initHDSModel();
+  await HDSLib.initHDSModel();
   if (state === 'loggedIN') {
     document.getElementById('please-login').style.display = 'none';
     document.getElementById('data-view').style.display = 'block';
@@ -109,7 +109,7 @@ async function showQuestionnary(questionaryId) {
       let content = form[key];
       if (key === 'itemKeys') {
         content = content.map((itemKey) => {
-          const itemDef = hdsModel().itemsDefs.forKey(itemKey);
+          const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
           return '- ' + HDSLib.l(itemDef.data.label);
         }).join('\n<br>');
       }

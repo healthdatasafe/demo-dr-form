@@ -1,5 +1,5 @@
 import { dataDefs } from "./common-data-defs.js";
-import { hdsModel, serviceInfoUrl, initHDSModel, stateSaveApp } from "./common-lib.js"
+import { serviceInfoUrl, stateSaveApp } from "./common-lib.js"
 
 
 // NEW
@@ -49,7 +49,7 @@ function showLoginButton (loginSpanId, stateChangeCallBack) {
     // called each time the authentication state changes
     console.log("##pryvAuthStateChange", state);
     if (state.id === HDSLib.pryv.Browser.AuthStates.AUTHORIZED) {
-      await initHDSModel(); // hds model needs to be initialized 
+      await HDSLib.initHDSModel(); // hds model needs to be initialized 
       const appManaging = await HDSLib.appTemplates.AppManagingAccount.newFromApiEndpoint(APP_MANAGING_STREAMID, state.apiEndpoint, APP_MANAGING_NAME);
       stateSaveApp('managing', appManaging);
       await initDemoAccount(appManaging);
@@ -92,7 +92,7 @@ async function initDemoAccount (appManaging) {
     }
     // 2 - get the permissions with eventual preRequest 
     const preRequest = questionary.permissionsPreRequest || [];
-    const permissions = hdsModel().authorizations.forItemKeys(itemKeys, { preRequest });
+    const permissions = HDSLib.model.authorizations.forItemKeys(itemKeys, { preRequest });
     
     const requestContent = {
       version: '0',
@@ -141,7 +141,7 @@ async function getPatientsData (collector) {
   const firstForm = Object.values(requestContent.app.data.forms)[0];
   const itemDefs = [];
   for (const itemKey of firstForm.itemKeys) {
-    const itemDef = hdsModel().itemsDefs.forKey(itemKey);
+    const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
     itemDefs.push(itemDef);
     headers[itemDef.key] = HDSLib.l(itemDef.data.label);
   }
@@ -211,7 +211,7 @@ async function getPatientDetails(invite, itemDefs) {
  * @param {*} event
  */
 function dataFieldFromEvent(event) {
-  const itemDef = hdsModel().itemsDefs.forEvent(event, false);
+  const itemDef = HDSLib.model.itemsDefs.forEvent(event, false);
   if (!itemDef) {
     console.error("## itemDef not found for event", event);
     return null;

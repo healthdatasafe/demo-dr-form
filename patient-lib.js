@@ -1,5 +1,3 @@
-import { hdsModel, initHDSModel } from "./common-lib.js"
-
 
 export const patientLib = {
   handleFormSubmit,
@@ -43,11 +41,11 @@ async function navGetPages(collectorClient) {
 
 
 async function getFormHistorical (collectorClient, formKey) {
-  await initHDSModel();
+  await HDSLib.initHDSModel();
   const requestData = collectorClient.requestData;
   const form = requestData.app.data.forms[formKey];
   const formFields = form.itemKeys.map((itemKey) => {
-    const itemDef = (hdsModel().itemsDefs.forKey(itemKey));
+    const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
     
     return {
       id: itemDef.key,
@@ -67,12 +65,12 @@ async function getFormHistorical (collectorClient, formKey) {
  * @returns 
  */
 async function getFormPermanentContent (collectorClient, formKey) {
-  await initHDSModel();
+  await HDSLib.initHDSModel();
   const requestData = collectorClient.requestData;
   const form = requestData.app.data.forms[formKey];
   console.log('## getFormPermanentContent ', {form, formKey, collectorClient})
   // get formItems
-  const formItemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
+  const formItemDefs = form.itemKeys.map((itemKey) => (HDSLib.model.itemsDefs.forKey(itemKey)));
   // get the values from the API
   const apiCalls = formItemDefs.map(itemDef => ({
     method: 'events.get',
@@ -114,10 +112,10 @@ async function getFormPermanentContent (collectorClient, formKey) {
 
 
 async function getHistoricalContent(collectorClient, formKey) {
-  await initHDSModel();
+  await HDSLib.initHDSModel();
   const requestData = collectorClient.requestData;
   const form = requestData.app.data.forms[formKey];
-  const itemDefs = form.itemKeys.map((itemKey) => (hdsModel().itemsDefs.forKey(itemKey)));
+  const itemDefs = form.itemKeys.map((itemKey) => (HDSLib.model.itemsDefs.forKey(itemKey)));
   const tableHeaders = itemDefs.map(itemDef => ({
     fieldId: itemDef.key,
     label: itemDef.data.label.en,
@@ -126,7 +124,7 @@ async function getHistoricalContent(collectorClient, formKey) {
 
   const valuesByDateStr = {};
   function addEntry (event) {
-    const itemDef = hdsModel().itemsDefs.forEvent(event, false);
+    const itemDef = HDSLib.model.itemsDefs.forEvent(event, false);
     if (itemDef == null) {
       console.log('Historical content -- unkown event', event);
       return;

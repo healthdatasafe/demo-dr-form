@@ -1,7 +1,5 @@
 
 
-import { connectAPIEndpoint, hdsModel } from './common-lib.js';
-
 export const drPatientLib = {
   setRefresh
 }
@@ -37,7 +35,7 @@ async function getPatientData (invite) {
 
 
 function getLineForEvent (event) {
-  const model = hdsModel();
+  const model = HDSLib.model;
   const line = {
     time: (new Date(event.time * 1000)).toISOString(),
     formLabel: 'Unkown',
