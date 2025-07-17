@@ -49,7 +49,7 @@ function getLineForEvent (event) {
   if (itemDef) {
     line.streamId = event.streamIds[0];
     line.eventType = event.type;
-    line.formLabel = itemDef.data.label.en;
+    line.formLabel = itemDef.label;
     line.formType = itemDef.data.type;
     if (line.formType === 'date') {
       line.value = (new Date(event.time * 1000)).toISOString().split('T')[0];
@@ -61,7 +61,7 @@ function getLineForEvent (event) {
       }
 
       const selected = itemDef.data.options.find((o) => ( o.value === line.value ));
-      line.description = selected?.label.en;
+      line.description = selected != null ? HDSLib.l(selected.label) : '-';
     }
     if (line.formType === 'checkbox') {
       if (event.type === 'activity/plain') {

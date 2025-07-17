@@ -49,7 +49,7 @@ async function getFormHistorical (collectorClient, formKey) {
     
     return {
       id: itemDef.key,
-      label: itemDef.data.label.en,
+      label: itemDef.label,
       type: itemDef.data.type,
       options: itemDef.data.options,
       itemDef
@@ -91,7 +91,7 @@ async function getFormPermanentContent (collectorClient, formKey) {
     const content = {
       id: itemDef.key,
       type: itemDef.data.type,
-      label: itemDef.data.label.en,
+      label: itemDef.label,
       options: itemDef.data.options,
       itemDef,
     }
@@ -118,7 +118,7 @@ async function getHistoricalContent(collectorClient, formKey) {
   const itemDefs = form.itemKeys.map((itemKey) => (HDSLib.model.itemsDefs.forKey(itemKey)));
   const tableHeaders = itemDefs.map(itemDef => ({
     fieldId: itemDef.key,
-    label: itemDef.data.label.en,
+    label: itemDef.label,
     type: itemDef.data.type
   }));
 
@@ -189,7 +189,7 @@ function valueAndTxtForField (event, itemDef) {
     console.log({value, event})
     const selected = itemDef.data.options.find((o) => ( o.value === value ));
     if (selected) {
-      txt = selected?.label.en;
+      txt = selected != null ? HDSLib.l(selected.label) : ' - ';
     }
     return { value, txt };
   } 

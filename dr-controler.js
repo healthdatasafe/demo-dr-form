@@ -110,7 +110,7 @@ async function showQuestionnary(questionaryId) {
       if (key === 'itemKeys') {
         content = content.map((itemKey) => {
           const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
-          return '- ' + HDSLib.l(itemDef.data.label);
+          return '- ' + itemDef.label;
         }).join('\n<br>');
       }
       row.insertCell(-1).innerHTML = content;

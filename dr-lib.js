@@ -143,7 +143,7 @@ async function getPatientsData (collector) {
   for (const itemKey of firstForm.itemKeys) {
     const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
     itemDefs.push(itemDef);
-    headers[itemDef.key] = HDSLib.l(itemDef.data.label);
+    headers[itemDef.key] = itemDef.label;
   }
 
   // add lines (1 per patient)
@@ -218,7 +218,7 @@ function dataFieldFromEvent(event) {
   }
   const field = {
     key: itemDef.key,
-    label: itemDef.data.label.en,
+    label: itemDef.label,
     type: itemDef.data.type,
     value: event.content,
     event: event,

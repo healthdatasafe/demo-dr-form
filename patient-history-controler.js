@@ -140,7 +140,7 @@ async function updateFormContent(formData) {
       fieldHTML += `<option value="">--</option>`;
       for (const option of formField.options) {
         const selected = `${option.value}` === fieldValue ? "selected" : "";
-        fieldHTML += `<option value="${option.value}" ${selected}>${option.label.en}</option>`;
+        fieldHTML += `<option value="${option.value}" ${selected}>${HDSLib.l(option.label)}</option>`;
       }
       fieldHTML += `</select>`;
     } else if (fieldType === "date") {
