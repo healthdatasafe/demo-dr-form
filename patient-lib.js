@@ -248,6 +248,8 @@ function parseFloatCustom(value) {
 async function handleFormSubmit (collectorClient, formData, formKey, values, date) {
   console.log('## handleForm', {formData, values, date});
   const apiCalls = [];
+  // list of items that will be created or updated
+  const itemDefsToCreateOrUpdate = new Set();
   for (const field of formData) {
     const streamId = field.itemDef.data.streamId;
     const eventType = field.itemDef.eventTypes[0];
@@ -269,6 +271,9 @@ async function handleFormSubmit (collectorClient, formData, formKey, values, dat
       // no change or noting to create
       continue;
     }
+
+    // bellow update or create
+    itemDefsToCreateOrUpdate.add(field.itemDef);
 
     if (eventId) {
       // update the event
@@ -300,6 +305,10 @@ async function handleFormSubmit (collectorClient, formData, formKey, values, dat
     console.log('## No changes to submit');
     return;
   }
+
+  // ensure streams exists
+  await collectorClient.app.connection.streamsAutoCreate.ensureExistsForItems(itemDefsToCreateOrUpdate);
+
   // send the API calls
   const res = await collectorClient.app.connection.api(apiCalls);
   console.log('## Form submitted', res);
