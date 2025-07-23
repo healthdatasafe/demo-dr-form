@@ -81,6 +81,7 @@ async function showQuestionnary(questionaryId) {
   const appManaging = await stateGetApp('managing');
   // get questionnary (Controller) 
   const collector = await appManaging.getCollectorById(questionaryId);
+  // TODO check if the following line is necessary 
   await collector.init(); // load controller data only when needed
   // show details
   const status = collector.statusData;
