@@ -1,7 +1,7 @@
 
 const v2 = {
   'questionary-x': {
-    title: 'Demo with Profile and TTC-TTA 3',
+    title: 'Demo with Profile and TTC-TTA 4',
     permissionsPreRequest: [
       {streamId: 'profile'},
       {streamId: 'fertility'},
@@ -17,7 +17,24 @@ const v2 = {
           'profile-sex',
           'family-children-count',
           'fertility-miscarriages-count'
-        ]
+        ],
+        customItems: {
+          'test-1': {
+            label: 'This is a checkbox',
+            type: 'checkbox',
+          },
+          'test-2': {
+            label: 'This is a multiple choice',
+            type: 'multiple',
+            options: [
+              { value: 'anemia', label: 'Anemia' }
+            ]
+          },
+          'test-3': {
+            label: 'This is question',
+            type: 'text'
+          }
+        }
       },
       history: {
         type: 'recurring',

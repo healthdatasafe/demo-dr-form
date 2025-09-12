@@ -84,16 +84,16 @@ async function showQuestionnary(questionaryId) {
   // TODO check if the following line is necessary 
   await collector.init(); // load controller data only when needed
   // show details
-  const status = collector.statusData;
+  const requestContent = collector.request.content;
   
-  document.getElementById('request-title').innerHTML = HDSLib.l(status.requestContent.title);
-  document.getElementById('request-requester').innerHTML = status.requestContent.requester.name;
-  document.getElementById('request-description').innerHTML = HDSLib.l(status.requestContent.description);
-  document.getElementById('request-consent').innerHTML = HDSLib.l(status.requestContent.consent);
-  const permissionsStr = status.requestContent.permissions.map(p =>  `- ${p.defaultName} => ${p.level}`).join('<BR>\n');
+  document.getElementById('request-title').innerHTML = HDSLib.l(requestContent.title);
+  document.getElementById('request-requester').innerHTML = requestContent.requester.name;
+  document.getElementById('request-description').innerHTML = HDSLib.l(requestContent.description);
+  document.getElementById('request-consent').innerHTML = HDSLib.l(requestContent.consent);
+  const permissionsStr = requestContent.permissions.map(p =>  `- ${p.defaultName} => ${p.level}`).join('<BR>\n');
   document.getElementById('request-permissions').innerHTML = permissionsStr;
-  document.getElementById('request-app-id').innerHTML = status.requestContent.app.id;
-  document.getElementById('request-app-url').innerHTML = status.requestContent.app.url;
+  document.getElementById('request-app-id').innerHTML = requestContent.app.id;
+  document.getElementById('request-app-url').innerHTML = requestContent.app.url;
   
   // document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
   // forms sections
@@ -101,7 +101,7 @@ async function showQuestionnary(questionaryId) {
   table.innerHTML = '';
   const keyTitles = { type: 'Type', name: 'Name', itemKeys: 'ItemKeys'};
   
-  const forms = Object.values(status.requestContent.app.data.forms);
+  const forms = Object.values(requestContent.app.data.forms);
   console.log('## forms', forms);
   for (const [key, title] of Object.entries(keyTitles)) {
     const row = table.insertRow(-1);
@@ -118,7 +118,7 @@ async function showQuestionnary(questionaryId) {
     }
   }  
   
-  console.log('## showQuestionnary status:', status);
+  console.log('## showQuestionnary status:', requestContent);
 
   // set create sharing button
   document.getElementById('button-new-sharing').onclick = async () => {
@@ -184,7 +184,7 @@ async function refreshPatientList(collector) {
 
   const table = document.getElementById('patients-table');
 
-  const requestContent = collector.statusData.requestContent;
+  const requestContent = collector.request.content;
   console.log('## collector requestContent', requestContent);
 
   // clear table

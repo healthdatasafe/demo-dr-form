@@ -117,10 +117,9 @@ async function initDemoAccount (appManaging) {
         } 
       }
     };
-    newCollector.statusData.requestContent = requestContent;
+    newCollector.request.setContent(requestContent);
     await newCollector.save(); // save the data (done when the form is edited)
-    await newCollector.publish();
-    console.log('##2 initDemoAccount published', newCollector);
+    // await newCollector.publish(); console.log('##2 initDemoAccount published', newCollector);
   }
   console.log('##2 initDemoAccount with ', collectors);
 }
@@ -128,7 +127,7 @@ async function initDemoAccount (appManaging) {
 // -------- Fetch patient list --------
 
 async function getPatientsData (collector) {
-  const requestContent = collector.statusData.requestContent;
+  const requestContent = collector.request.content;
   console.log('## collector requestContent', requestContent);
   // static headers
   const headers = {
