@@ -26,6 +26,7 @@ function stateChange(state) {
 }
 
 async function refresh() {
+  await HDSLib.initHDSModel();
   const inviteParams = getInviteParamsFromURL();
   const appClient = await stateGetApp('client');
   if (inviteParams) {

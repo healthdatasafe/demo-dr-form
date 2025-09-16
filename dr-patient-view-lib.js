@@ -35,7 +35,7 @@ async function getPatientData (invite) {
 
 
 function getLineForEvent (event) {
-  const model = HDSLib.model;
+  const model = HDSLib.getHDSModel();
   const line = {
     time: (new Date(event.time * 1000)).toISOString(),
     formLabel: 'Unkown',

@@ -22,16 +22,15 @@ async function navGetPages(collectorClient) {
     label: 'Home',
     formKey: null
   }];
-  const forms = collectorClient.requestData.app.data.forms;
-  console.log('## nav Forms', collectorClient.requestData);
-  for (const [formKey, form] of Object.entries(forms)) {
+  for (const section of collectorClient.request.sections) {
     pages.push({
-      type: form.type,
-      label: form.name,
-      url: pagesByTypes[form.type] + '?formKey=' + formKey,
-      formKey
+      type: section.type,
+      label: HDSLib.l(section.name),
+      url: pagesByTypes[section.type] + '?formKey=' + section.key,
+      formKey: section.key
     });
   }
+  console.log("NNNN ", collectorClient.request, pages);
   return pages;
 }
 
@@ -42,10 +41,9 @@ async function navGetPages(collectorClient) {
 
 async function getFormHistorical (collectorClient, formKey) {
   await HDSLib.initHDSModel();
-  const requestData = collectorClient.requestData;
-  const form = requestData.app.data.forms[formKey];
-  const formFields = form.itemKeys.map((itemKey) => {
-    const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
+  const section = collectorClient.request.getSectionByKey(formKey);
+  const formFields = section.itemKeys.map((itemKey) => {
+    const itemDef = HDSLib.getHDSModel().itemsDefs.forKey(itemKey);
     
     return {
       id: itemDef.key,
@@ -66,11 +64,10 @@ async function getFormHistorical (collectorClient, formKey) {
  */
 async function getFormPermanentContent (collectorClient, formKey) {
   await HDSLib.initHDSModel();
-  const requestData = collectorClient.requestData;
-  const form = requestData.app.data.forms[formKey];
-  console.log('## getFormPermanentContent ', {form, formKey, collectorClient})
+  const section = collectorClient.request.getSectionByKey(formKey);
+  console.log('## getFormPermanentContent ', {section, formKey, collectorClient})
   // get formItems
-  const formItemDefs = form.itemKeys.map((itemKey) => (HDSLib.model.itemsDefs.forKey(itemKey)));
+  const formItemDefs = section.itemKeys.map((itemKey) => (HDSLib.getHDSModel().itemsDefs.forKey(itemKey)));
   // get the values from the API
   const apiCalls = formItemDefs.map(itemDef => ({
     method: 'events.get',
@@ -113,9 +110,8 @@ async function getFormPermanentContent (collectorClient, formKey) {
 
 async function getHistoricalContent(collectorClient, formKey) {
   await HDSLib.initHDSModel();
-  const requestData = collectorClient.requestData;
-  const form = requestData.app.data.forms[formKey];
-  const itemDefs = form.itemKeys.map((itemKey) => (HDSLib.model.itemsDefs.forKey(itemKey)));
+  const section = collectorClient.request.getSectionByKey(formKey);
+  const itemDefs = section.itemKeys.map((itemKey) => (HDSLib.getHDSModel().itemsDefs.forKey(itemKey)));
   const tableHeaders = itemDefs.map(itemDef => ({
     fieldId: itemDef.key,
     label: itemDef.label,
@@ -124,7 +120,7 @@ async function getHistoricalContent(collectorClient, formKey) {
 
   const valuesByDateStr = {};
   function addEntry (event) {
-    const itemDef = HDSLib.model.itemsDefs.forEvent(event, false);
+    const itemDef = HDSLib.getHDSModel().itemsDefs.forEvent(event, false);
     if (itemDef == null) {
       console.log('Historical content -- unkown event', event);
       return;

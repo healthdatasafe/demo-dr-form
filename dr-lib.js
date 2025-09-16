@@ -92,7 +92,7 @@ async function initDemoAccount (appManaging) {
     }
     // 2 - get the permissions with eventual preRequest 
     const preRequest = questionary.permissionsPreRequest || [];
-    const permissions = HDSLib.model.authorizations.forItemKeys(itemKeys, { preRequest });
+    const permissions = HDSLib.getHDSModel().authorizations.forItemKeys(itemKeys, { preRequest });
     
     const requestContent = {
       version: '0',
@@ -137,10 +137,10 @@ async function getPatientsData (collector) {
     createdAt: 'Date'
   }
   // headers from first form 
-  const firstForm = Object.values(requestContent.app.data.forms)[0];
+  const firstSection = requestContent.sections[0];
   const itemDefs = [];
-  for (const itemKey of firstForm.itemKeys) {
-    const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
+  for (const itemKey of firstSection.itemKeys) {
+    const itemDef = HDSLib.getHDSModel().itemsDefs.forKey(itemKey);
     itemDefs.push(itemDef);
     headers[itemDef.key] = itemDef.label;
   }
@@ -210,7 +210,7 @@ async function getPatientDetails(invite, itemDefs) {
  * @param {*} event
  */
 function dataFieldFromEvent(event) {
-  const itemDef = HDSLib.model.itemsDefs.forEvent(event, false);
+  const itemDef = HDSLib.getHDSModel().itemsDefs.forEvent(event, false);
   if (!itemDef) {
     console.error("## itemDef not found for event", event);
     return null;

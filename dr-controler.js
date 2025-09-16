@@ -84,16 +84,15 @@ async function showQuestionnary(questionaryId) {
   // TODO check if the following line is necessary 
   await collector.init(); // load controller data only when needed
   // show details
-  const requestContent = collector.request.content;
   
-  document.getElementById('request-title').innerHTML = HDSLib.l(requestContent.title);
-  document.getElementById('request-requester').innerHTML = requestContent.requester.name;
-  document.getElementById('request-description').innerHTML = HDSLib.l(requestContent.description);
-  document.getElementById('request-consent').innerHTML = HDSLib.l(requestContent.consent);
-  const permissionsStr = requestContent.permissions.map(p =>  `- ${p.defaultName} => ${p.level}`).join('<BR>\n');
+  document.getElementById('request-title').innerHTML = HDSLib.l(collector.request.title);
+  document.getElementById('request-requester').innerHTML = collector.request.requesterName;
+  document.getElementById('request-description').innerHTML = HDSLib.l(collector.request.description);
+  document.getElementById('request-consent').innerHTML = HDSLib.l(collector.request.consent);
+  const permissionsStr = collector.request.permissions.map(p =>  `- ${p.defaultName} => ${p.level}`).join('<BR>\n');
   document.getElementById('request-permissions').innerHTML = permissionsStr;
-  document.getElementById('request-app-id').innerHTML = requestContent.app.id;
-  document.getElementById('request-app-url').innerHTML = requestContent.app.url;
+  document.getElementById('request-app-id').innerHTML = collector.request.appId;
+  document.getElementById('request-app-url').innerHTML = collector.request.appUrl;
   
   // document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
   // forms sections
@@ -101,16 +100,19 @@ async function showQuestionnary(questionaryId) {
   table.innerHTML = '';
   const keyTitles = { type: 'Type', name: 'Name', itemKeys: 'ItemKeys'};
   
-  const forms = Object.values(requestContent.app.data.forms);
-  console.log('## forms', forms);
+  const sections = collector.request.sections;
+  console.log('## sections', sections);
   for (const [key, title] of Object.entries(keyTitles)) {
     const row = table.insertRow(-1);
     row.insertCell(-1).innerHTML = title;
-    for (const form of forms) {
-      let content = form[key];
+    for (const section of sections) {
+      let content = section[key];
+      if (key === 'name') {
+        content = HDSLib.l(content); // localizable text
+      }
       if (key === 'itemKeys') {
         content = content.map((itemKey) => {
-          const itemDef = HDSLib.model.itemsDefs.forKey(itemKey);
+          const itemDef = HDSLib.getHDSModel().itemsDefs.forKey(itemKey);
           return '- ' + itemDef.label;
         }).join('\n<br>');
       }

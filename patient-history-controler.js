@@ -9,6 +9,7 @@ import { stateGetApp, stateGetData } from './common-lib.js';
  */
 let navData;
 window.onload = async (event) => {
+  await HDSLib.initHDSModel();
   // const get formKey
   const formKey = (new URLSearchParams(window.location.search)).get('formKey');
   const appClient = await stateGetApp('client');
@@ -19,8 +20,8 @@ window.onload = async (event) => {
 
   // form title
   const formTitle = document.getElementById('card-questionnary-details-title');
-  const requestData = collectorClient.requestData;
-  const title = HDSLib.l(requestData.app.data.forms[formKey].title);
+  const section = collectorClient.request.getSectionByKey(formKey);
+  const title = HDSLib.l(section.title);
   formTitle.innerHTML = title;
 
   const dateInput = document.getElementById("form-date");
