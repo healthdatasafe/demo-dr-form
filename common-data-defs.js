@@ -1,7 +1,7 @@
 
 const v2 = {
   'questionary-x': {
-    title: 'Demo with Profile and TTC-TTA 4',
+    title: 'Demo with Profile and TTC-TTA 6',
     permissionsPreRequest: [
       {streamId: 'profile'},
       {streamId: 'fertility'},

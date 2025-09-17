@@ -94,7 +94,6 @@ async function showQuestionnary(questionaryId) {
   document.getElementById('request-app-id').innerHTML = collector.request.appId;
   document.getElementById('request-app-url').innerHTML = collector.request.appUrl;
   
-  // document.getElementById('requestContent').innerHTML = JSON.stringify(status, null, 2);
   // forms sections
   const table = document.getElementById('forms-sections');
   table.innerHTML = '';
@@ -185,9 +184,6 @@ async function refreshPatientList(collector) {
   const { headers, patientsData } = await drLib.getPatientsData(collector);
 
   const table = document.getElementById('patients-table');
-
-  const requestContent = collector.request.content;
-  console.log('## collector requestContent', requestContent);
 
   // clear table
   table.innerHTML = '';

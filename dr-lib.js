@@ -83,43 +83,34 @@ async function initDemoAccount (appManaging) {
     }
     console.log('##2 initDemoAccount creating collector for', questionary);
     const newCollector = await appManaging.createCollector(questionary.title);
-    
-    // create the request content 
-    // 1- get all items form the questionnary sections
-    const itemKeys = [];
-    for (const formContent of Object.values(questionary.forms)) {
-      itemKeys.push(...formContent.itemKeys);
+    const request = newCollector.request;
+    request.appId = 'dr-form';
+    request.appUrl = 'https://xxx.yyy';
+    request.title = { en: questionary.title };
+    request.requesterName = 'Username ' + drUserName;
+    request.description = { en: 'Short Description to be updated: ' + questionary.title };
+    request.consent = { en: 'Short Consent to be updated: ' + questionary.title };
+
+    // add static permissions
+    for (const extraPermission of questionary.permissionsPreRequest) {
+      request.addPermissionExtra(extraPermission);
     }
-    // 2 - get the permissions with eventual preRequest 
-    const preRequest = questionary.permissionsPreRequest || [];
-    const permissions = HDSLib.getHDSModel().authorizations.forItemKeys(itemKeys, { preRequest });
     
-    const requestContent = {
-      version: '0',
-      title: {
-        en: questionary.title
-      },
-      requester: {
-        name: 'Username ' + drUserName,
-      },
-      description: {
-        en: 'Short Description to be updated: ' + questionary.title
-      },
-      consent: {
-        en: 'This is a consent message to be set'
-      },
-      permissions,
-      app: {
-        id: 'dr-form',
-        url: 'https://xxx.yyy',
-        data: { // will be used by patient app
-          forms: questionary.forms
-        } 
-      }
-    };
-    newCollector.request.setContent(requestContent);
+    // create the sections contents 
+    for (const [key, form] of Object.entries(questionary.forms)) {
+      const section = request.createSection(key, form.type);
+      section.setNameLocal('en', form.name);
+      section.addItemKeys(form.itemKeys);
+    }
+   
+    // build permissions needed
+    request.buildPermissions();
+
+    // checkContent
+    console.log('$$$$$$$ ', request.content);
+
     await newCollector.save(); // save the data (done when the form is edited)
-    // await newCollector.publish(); console.log('##2 initDemoAccount published', newCollector);
+    await newCollector.publish(); console.log('##2 initDemoAccount published', newCollector);
   }
   console.log('##2 initDemoAccount with ', collectors);
 }
@@ -127,8 +118,6 @@ async function initDemoAccount (appManaging) {
 // -------- Fetch patient list --------
 
 async function getPatientsData (collector) {
-  const requestContent = collector.request.content;
-  console.log('## collector requestContent', requestContent);
   // static headers
   const headers = {
     status: 'Status',
@@ -137,7 +126,8 @@ async function getPatientsData (collector) {
     createdAt: 'Date'
   }
   // headers from first form 
-  const firstSection = requestContent.sections[0];
+  const firstSection = collector.request.sections[0];
+  if (!firstSection) return null;
   const itemDefs = [];
   for (const itemKey of firstSection.itemKeys) {
     const itemDef = HDSLib.getHDSModel().itemsDefs.forKey(itemKey);
