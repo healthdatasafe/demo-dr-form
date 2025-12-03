@@ -89,7 +89,7 @@ async function initDemoAccount (appManaging) {
     request.title = { en: questionary.title };
     request.requesterName = 'Username ' + drUserName;
     request.description = { en: 'Short Description to be updated: ' + questionary.title };
-    request.consent = { en: 'Short Consent to be updated: ' + questionary.title };
+    request.consent = { en: 'This is a consent message to be set' };
 
     // add static permissions
     for (const extraPermission of questionary.permissionsPreRequest) {
