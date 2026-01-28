@@ -77,6 +77,33 @@ const v2 = {
         ]
       }
     }
+  },
+  'questionnary-with-chat-3': {
+    features: { chat: { type: 'user' } },
+    forms: {
+      history: {
+        itemKeys: [
+          'body-weight',
+          'fertility-cycles-start',
+          'fertility-cycles-ovulation',
+          'fertility-cycles-period-end',
+          'fertility-cycles-fertile-window',
+          'fertility-hormone-lh',
+          'fertility-hormone-fsh'
+          ],
+        key: 'recurring-c',
+        name: 'History',
+        type: 'recurring'
+      },
+      profile: {
+        itemKeys: ['profile-date-of-birth'],
+        key: 'profile-c',
+        name: 'Profile',
+        type: 'permanent'
+      }
+    },
+    permissionsPreRequest: [{ streamId: 'profile' }],
+    title: 'Basic with chat 3'
   }
 }
 

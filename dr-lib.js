@@ -90,6 +90,9 @@ async function initDemoAccount (appManaging) {
     request.requesterName = 'Username ' + drUserName;
     request.description = { en: 'Short Description to be updated: ' + questionary.title };
     request.consent = { en: 'This is a consent message to be set' };
+    if (questionary.features?.chat) {
+      request.addChatFeature();
+    }
 
     // add static permissions
     for (const extraPermission of questionary.permissionsPreRequest) {
