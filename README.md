@@ -109,3 +109,8 @@ Other: precise
 
 * Estimated number of feminine cycles charted so far 
 * TTC / TTA scale : https://fertilityawarenessmethodofbirthcontrol.com/fertility-intentions-scale/ 
+
+
+## License
+
+[BSD-3-Clause](LICENSE)
